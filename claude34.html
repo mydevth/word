@@ -1,0 +1,2324 @@
+c
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jigsaw Speller: ถอดรหัสจิ๊กซอว์ศัพท์</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Theme Colors */
+        body.theme-blue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body.theme-pink {
+            background: linear-gradient(135deg, #ed64a6 0%, #d53f8c 100%);
+        }
+
+        body.theme-green {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        body.theme-purple {
+            background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+        }
+
+        .container {
+            max-width: 800px;
+            width: 95%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            min-height: 600px;
+        }
+
+        .screen {
+            display: none;
+            padding: 40px;
+            text-align: center;
+            min-height: 520px;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h1 {
+            color: #4a5568;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #2d3748;
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        /* Theme Selector */
+        .theme-selector, .mode-selector {
+            margin-bottom: 25px;
+        }
+
+        .theme-buttons, .mode-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .theme-btn, .mode-btn {
+            padding: 10px 15px;
+            font-size: 1em;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .theme-btn:hover, .mode-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .theme-btn.selected, .mode-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .sound-toggle {
+            margin-bottom: 20px;
+        }
+
+        .sound-btn {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .sound-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .sound-btn.muted {
+            background: #fed7d7;
+            border-color: #f56565;
+            color: #c53030;
+        }
+
+        /* Setup Screen Styles */
+        .word-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 3px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            transition: border-color 0.3s;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .word-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-btn {
+            padding: 15px 25px;
+            font-size: 1.1em;
+            border: 3px solid #e2e8f0;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .difficulty-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.3em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.3);
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.4);
+        }
+
+        .start-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Game Screen Styles */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .progress {
+            font-size: 1.3em;
+            color: #4a5568;
+            font-weight: bold;
+        }
+
+        .timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #e53e3e;
+            background: #fed7d7;
+            padding: 10px 15px;
+            border-radius: 15px;
+        }
+
+        .timer.warning {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .sticker-collection {
+            display: flex;
+            gap: 5px;
+        }
+
+        .sticker {
+            font-size: 1.5em;
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .word-slots {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .slot {
+            min-width: 80px;
+            height: 80px;
+            border: 3px dashed #cbd5e0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4a5568;
+            transition: all 0.3s;
+            background: #f7fafc;
+        }
+
+        .slot.occupied {
+            border: 3px solid #48bb78;
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .slot.drop-zone {
+            border-color: #667eea;
+            background: #e6fffa;
+        }
+
+        .puzzle-pieces {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .puzzle-piece {
+            padding: 15px 20px;
+            background: linear-gradient(45deg, #fbb6ce, #f687b3);
+            color: #744210;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: grab;
+            transition: all 0.3s;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            user-select: none;
+        }
+
+        .puzzle-piece:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .puzzle-piece.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .puzzle-piece.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Game Controls */
+        .game-controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .hint-btn, .pronounce-btn {
+            padding: 12px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .hint-btn {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #744210;
+        }
+
+        .hint-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .hint-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            color: #a0aec0;
+        }
+
+        .pronounce-btn {
+            background: linear-gradient(45deg, #38b2ac, #319795);
+            color: white;
+        }
+
+        .pronounce-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(56, 178, 172, 0.3);
+        }
+
+        .hint-display {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2d3748;
+            background: #fff5cd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 2px solid #fbd38d;
+        }
+
+        /* Writing Screen Styles */
+        .complete-word {
+            font-size: 3em;
+            color: #48bb78;
+            margin-bottom: 30px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .writing-input {
+            padding: 15px;
+            font-size: 1.5em;
+            border: 3px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            width: 300px;
+            max-width: 100%;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .writing-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .writing-input.correct {
+            border-color: #48bb78;
+            background: #c6f6d5;
+        }
+
+        .writing-input.incorrect {
+            border-color: #f56565;
+            background: #fed7d7;
+        }
+
+        .next-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Summary Screen Styles */
+        .star-rating {
+            font-size: 3em;
+            color: #ffd700;
+            margin-bottom: 20px;
+        }
+
+        .word-list {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .word-list h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .word-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .word-item:last-child {
+            border-bottom: none;
+        }
+
+        .word-item .word {
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .word-item .status {
+            color: #48bb78;
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 15px 25px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .play-again-btn {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .new-game-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Animations */
+        @keyframes success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .success-animation {
+            animation: success 0.5s ease-in-out;
+        }
+
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4em;
+            color: #ffd700;
+            z-index: 1000;
+            animation: celebration 1s ease-in-out;
+        }
+
+        @keyframes celebration {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Hide theme selector on mobile */
+        .desktop-only {
+            display: block;
+        }
+        .vocab-sets-section {
+            margin-bottom: 25px;
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .vocab-sets-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .save-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .set-name-input {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-family: 'Prompt', sans-serif;
+            min-width: 150px;
+        }
+
+        .save-btn, .load-btn, .delete-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-family: 'Prompt', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .save-btn {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .load-btn {
+            background: linear-gradient(45deg, #4299e1, #3182ce);
+            color: white;
+        }
+
+        .delete-btn {
+            background: linear-gradient(45deg, #f56565, #e53e3e);
+            color: white;
+            font-size: 0.8em;
+            padding: 4px 8px;
+        }
+
+        .save-btn:hover, .load-btn:hover, .delete-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .saved-sets {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .vocab-set-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px;
+            transition: all 0.3s;
+        }
+
+        .vocab-set-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .set-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .set-name {
+            font-weight: bold;
+            color: #2d3748;
+            font-size: 1em;
+        }
+
+        .set-info {
+            color: #718096;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+        }
+
+        .set-words-preview {
+            color: #4a5568;
+            font-size: 0.85em;
+            background: #f7fafc;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            max-height: 40px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .set-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .toggle-sets-btn {
+            background: linear-gradient(45deg, #805ad5, #6b46c1);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Prompt', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .toggle-sets-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.3);
+        }
+
+        /* Mobile adjustments for vocab sets */
+        @media (max-width: 768px) {
+            .vocab-sets-section {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .vocab-sets-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .save-section {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .set-name-input {
+                width: 100%;
+                font-size: 16px; /* Prevent zoom on iOS */
+            }
+            
+            .saved-sets {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .save-btn, .load-btn {
+                padding: 12px 20px;
+                min-height: 44px;
+            }
+            
+            .delete-btn {
+                padding: 8px 12px;
+                min-height: 36px;
+            }
+        }
+
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            .desktop-only {
+                display: none !important;
+            }
+            
+            .container {
+                width: 100%;
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .screen {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 15px;
+            }
+            
+            h2 {
+                font-size: 1.5em;
+                margin-bottom: 10px;
+            }
+            
+            .subtitle {
+                font-size: 1em;
+                margin-bottom: 20px;
+            }
+            
+            /* Mobile theme buttons */
+            .theme-buttons, .mode-buttons {
+                gap: 8px;
+            }
+            
+            .theme-btn, .mode-btn {
+                padding: 8px 12px;
+                font-size: 0.9em;
+                min-width: auto;
+            }
+            
+            /* Mobile word input - Fix iOS keyboard issues */
+            .word-input {
+                padding: 15px;
+                font-size: 16px; /* Prevent zoom on iOS */
+                margin-bottom: 20px;
+                border-radius: 8px;
+                -webkit-appearance: none;
+                -webkit-border-radius: 8px;
+                background-color: white;
+                width: 100%;
+                box-sizing: border-box;
+                resize: vertical;
+                min-height: 100px;
+                line-height: 1.4;
+            }
+            
+            .word-input:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+            }
+            
+            /* Mobile difficulty buttons */
+            .difficulty-selector {
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+            
+            .difficulty-btn {
+                padding: 12px 16px;
+                font-size: 0.9em;
+                min-width: 90px;
+                min-height: 60px;
+            }
+            
+            /* Mobile mode selector */
+            .mode-selector {
+                margin-bottom: 20px;
+            }
+            
+            .mode-btn {
+                padding: 10px 14px;
+                font-size: 0.9em;
+                min-height: 44px;
+            }
+            
+            /* Mobile sound toggle */
+            .sound-btn {
+                padding: 12px 20px;
+                font-size: 1em;
+                min-height: 44px;
+            }
+            
+            /* Mobile start button */
+            .start-btn {
+                padding: 16px 32px;
+                font-size: 1.2em;
+                min-height: 50px;
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            /* Mobile game header */
+            .game-header {
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            
+            .progress {
+                font-size: 1.2em;
+            }
+            
+            .timer {
+                font-size: 1.3em;
+                padding: 8px 12px;
+            }
+            
+            /* Mobile word slots - make them clickable instead of drag-drop */
+            .word-slots {
+                gap: 8px;
+                margin-bottom: 25px;
+            }
+            
+            .slot {
+                min-width: 60px;
+                height: 60px;
+                font-size: 1.1em;
+                cursor: pointer;
+                border: 3px solid #cbd5e0;
+                touch-action: manipulation;
+            }
+            
+            .slot.selected-slot {
+                border-color: #667eea;
+                background: #e6fffa;
+                box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+            }
+            
+            /* Mobile puzzle pieces - make them larger and easier to tap */
+            .puzzle-pieces {
+                gap: 8px;
+                margin-top: 20px;
+            }
+            
+            .puzzle-piece {
+                padding: 12px 16px;
+                font-size: 1.1em;
+                cursor: pointer;
+                min-width: 50px;
+                min-height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 2px solid transparent;
+                touch-action: manipulation;
+            }
+            
+            .puzzle-piece.selected-piece {
+                border-color: #48bb78;
+                background: linear-gradient(45deg, #68d391, #48bb78);
+                transform: scale(1.05);
+            }
+            
+            .puzzle-piece:active {
+                transform: scale(0.95);
+            }
+            
+            /* Mobile game controls */
+            .game-controls {
+                margin-top: 15px;
+                gap: 10px;
+            }
+            
+            .hint-btn, .pronounce-btn {
+                padding: 12px 18px;
+                font-size: 1em;
+                min-height: 50px;
+                min-width: 120px;
+            }
+            
+            /* Mobile writing screen */
+            .complete-word {
+                font-size: 2.2em;
+                margin-bottom: 20px;
+            }
+            
+            .writing-input {
+                padding: 15px;
+                font-size: 18px; /* Prevent zoom on iOS */
+                width: 100%;
+                max-width: 280px;
+                -webkit-appearance: none;
+                border-radius: 8px;
+                background-color: white;
+            }
+            
+            .writing-input:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+            }
+            
+            .next-btn {
+                padding: 14px 28px;
+                font-size: 1.1em;
+                min-height: 50px;
+                margin-top: 20px;
+            }
+            
+            /* Mobile action buttons */
+            .action-buttons {
+                gap: 10px;
+                margin-top: 20px;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-btn {
+                padding: 14px 24px;
+                font-size: 1em;
+                min-height: 50px;
+                width: 100%;
+                max-width: 250px;
+            }
+            
+            /* Mobile hint display */
+            .hint-display {
+                font-size: 1em;
+                padding: 12px;
+                margin-top: 10px;
+            }
+            
+            /* Mobile instructions */
+            .mobile-instructions {
+                background: #f0f8ff;
+                border: 2px solid #667eea;
+                border-radius: 8px;
+                padding: 12px;
+                margin-bottom: 15px;
+                font-size: 0.9em;
+                color: #2d3748;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body class="theme-blue">
+    <div class="container">
+        <!-- Setup Screen -->
+        <div class="screen active" id="setupScreen">
+            <h1>🧩 Jigsaw Speller</h1>
+            <p class="subtitle">สร้างเกมจิ๊กซอว์ศัพท์ของคุณ!</p>
+            
+            <!-- Vocabulary Sets Management -->
+            <div class="vocab-sets-section">
+                <div class="vocab-sets-header">
+                    <h3 style="color: #4a5568; margin: 0;">📚 ชุดคำศัพท์ที่บันทึก</h3>
+                    <button class="toggle-sets-btn" id="toggleSetsBtn">🔽 แสดง/ซ่อน</button>
+                </div>
+                
+                <div id="vocabSetsContent" style="display: none;">
+                    <div class="save-section">
+                        <input type="text" class="set-name-input" id="setNameInput" placeholder="ชื่อชุดคำศัพท์ (เช่น สัตว์, สี, อาหาร)" maxlength="30">
+                        <button class="save-btn" id="saveSetBtn">💾 บันทึกชุด</button>
+                    </div>
+                    
+                    <div class="saved-sets" id="savedSets">
+                        <!-- Saved vocabulary sets will appear here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Theme Selector - Hidden on Mobile -->
+            <div class="theme-selector desktop-only">
+                <p style="margin-bottom: 15px; font-weight: 500;">🎨 เลือกธีมสีที่ชอบ:</p>
+                <div class="theme-buttons">
+                    <button class="theme-btn selected" data-theme="blue">💙 ฟ้า</button>
+                    <button class="theme-btn" data-theme="pink">💖 ชมพู</button>
+                    <button class="theme-btn" data-theme="green">💚 เขียว</button>
+                    <button class="theme-btn" data-theme="purple">💜 ม่วง</button>
+                </div>
+            </div>
+            
+            <!-- Sound Toggle -->
+            <div class="sound-toggle">
+                <button class="sound-btn" id="soundToggle">🔊 เปิดเสียง</button>
+            </div>
+            
+            <textarea class="word-input" id="wordInput" placeholder="โปรดใส่คำศัพท์ภาษาอังกฤษ คั่นด้วยเครื่องหมายจุลภาค (,) เช่น cat, dog, happy, book, tree" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+            
+            <div class="difficulty-selector">
+                <button class="difficulty-btn" data-level="easy">
+                    ง่าย<br><small>ตัวอักษรเดี่ยว</small>
+                </button>
+                <button class="difficulty-btn selected" data-level="medium">
+                    ปานกลาง<br><small>แบ่งเป็นส่วน</small>
+                </button>
+                <button class="difficulty-btn" data-level="hard">
+                    ยาก<br><small>ผสมรูปแบบ</small>
+                </button>
+            </div>
+            
+            <!-- Game Mode Selector -->
+            <div class="mode-selector">
+                <p style="margin-bottom: 15px; font-weight: 500;">⚡ โหมดเกม:</p>
+                <div class="mode-buttons">
+                    <button class="mode-btn selected" data-mode="normal">🎯 ปกติ</button>
+                    <button class="mode-btn" data-mode="timed">⏰ แข่งเวลา</button>
+                    <button class="mode-btn" data-mode="hint">💡 มีใบ้</button>
+                </div>
+            </div>
+            
+            <button class="start-btn" id="startBtn">🚀 เริ่มภารกิจ!</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="screen" id="gameScreen">
+            <div class="game-header">
+                <div class="progress" id="progress">คำที่ 1/5</div>
+                <div class="timer" id="timer" style="display: none;">⏰ 30</div>
+                <div class="sticker-collection" id="stickerCollection"></div>
+            </div>
+            
+            <!-- Mobile Instructions -->
+            <div class="mobile-instructions" id="mobileInstructions" style="display: none;">
+                📱 <strong>วิธีเล่นบนมือถือ:</strong> แตะเลือกชิ้นส่วน แล้วแตะช่องที่ต้องการวาง
+            </div>
+            
+            <h2 id="currentWord">ต่อจิ๊กซอว์ให้ถูกต้อง</h2>
+            
+            <div class="word-slots" id="wordSlots">
+                <!-- Slots will be generated here -->
+            </div>
+            
+            <div class="puzzle-pieces" id="puzzlePieces">
+                <!-- Puzzle pieces will be generated here -->
+            </div>
+            
+            <div class="game-controls">
+                <button class="hint-btn" id="hintBtn" style="display: none;">💡 ขอใบ้</button>
+                <button class="pronounce-btn" id="pronounceBtn">🗣️ ฟังเสียง</button>
+            </div>
+            
+            <div class="hint-display" id="hintDisplay" style="display: none;"></div>
+        </div>
+
+        <!-- Writing Screen -->
+        <div class="screen" id="writingScreen">
+            <h2>ยอดเยี่ยม! 🎉</h2>
+            <div class="complete-word" id="completeWord">HELLO</div>
+            <p class="subtitle">ลองเขียนคำนี้ด้วยตัวเองดูสิ</p>
+            
+            <input type="text" class="writing-input" id="writingInput" placeholder="พิมพ์คำศัพท์ที่นี่">
+            <button class="next-btn" id="nextBtn" style="display: none;">คำต่อไป →</button>
+        </div>
+
+        <!-- Summary Screen -->
+        <div class="screen" id="summaryScreen">
+            <h1>🎊 ภารกิจสำเร็จ!</h1>
+            <p class="subtitle">คุณคือสุดยอดสายลับคำศัพท์!</p>
+            
+            <div class="star-rating" id="starRating">⭐⭐⭐⭐⭐</div>
+            
+            <div class="word-list" id="wordList">
+                <h3>คำศัพท์ที่ได้ฝึกไป</h3>
+                <!-- Word list will be generated here -->
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn play-again-btn" id="playAgainBtn">🔄 เล่นอีกครั้ง</button>
+                <button class="action-btn new-game-btn" id="newGameBtn">🏠 เกมใหม่</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class JigsawSpeller {
+            constructor() {
+                this.words = [];
+                this.currentWordIndex = 0;
+                this.difficulty = 'medium';
+                this.gameMode = 'normal';
+                this.theme = 'blue';
+                this.soundEnabled = true;
+                this.completedWords = [];
+                this.currentPuzzleData = null;
+                this.timer = null;
+                this.timeLeft = 30;
+                this.hintsUsed = 0;
+                this.stickers = [];
+                this.isMobile = window.innerWidth <= 768;
+                this.selectedPiece = null;
+                this.audioContext = null;
+                
+                // Scoring system
+                this.wordScores = [];
+                this.currentWordStartTime = 0;
+                this.currentWordHints = 0;
+                this.consecutiveStreak = 0;
+                this.maxStreak = 0;
+                
+                // Vocabulary sets management
+                this.savedSets = this.loadSavedSets();
+                
+                this.initializeEventListeners();
+                this.detectMobile();
+                this.renderSavedSets();
+            }
+
+            detectMobile() {
+                this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+                
+                if (this.isMobile) {
+                    document.getElementById('mobileInstructions').style.display = 'block';
+                }
+                
+                // Listen for resize
+                window.addEventListener('resize', () => {
+                    this.isMobile = window.innerWidth <= 768;
+                    if (this.isMobile) {
+                        document.getElementById('mobileInstructions').style.display = 'block';
+                    } else {
+                        document.getElementById('mobileInstructions').style.display = 'none';
+                    }
+                });
+            }
+
+            initializeEventListeners() {
+                // Setup screen
+                document.getElementById('startBtn').addEventListener('click', () => this.startGame());
+                
+                // Vocabulary sets management
+                document.getElementById('toggleSetsBtn').addEventListener('click', () => this.toggleSetsVisibility());
+                document.getElementById('saveSetBtn').addEventListener('click', () => this.saveVocabSet());
+                document.getElementById('setNameInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.saveVocabSet();
+                });
+                
+                // Theme buttons
+                document.querySelectorAll('.theme-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.selectTheme(btn));
+                });
+                
+                // Mode buttons
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.selectMode(btn));
+                });
+                
+                // Difficulty buttons
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.selectDifficulty(btn));
+                });
+                
+                // Sound toggle
+                document.getElementById('soundToggle').addEventListener('click', () => this.toggleSound());
+
+                // Game screen
+                document.getElementById('hintBtn').addEventListener('click', () => this.showHint());
+                document.getElementById('pronounceBtn').addEventListener('click', () => this.pronounceWord());
+
+                // Writing screen
+                document.getElementById('writingInput').addEventListener('input', () => this.checkWriting());
+                document.getElementById('nextBtn').addEventListener('click', () => this.nextWord());
+
+                // Summary screen
+                document.getElementById('playAgainBtn').addEventListener('click', () => this.playAgain());
+                document.getElementById('newGameBtn').addEventListener('click', () => this.newGame());
+            }
+
+            selectTheme(selectedBtn) {
+                document.querySelectorAll('.theme-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                selectedBtn.classList.add('selected');
+                this.theme = selectedBtn.dataset.theme;
+                document.body.className = `theme-${this.theme}`;
+            }
+
+            selectMode(selectedBtn) {
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                selectedBtn.classList.add('selected');
+                this.gameMode = selectedBtn.dataset.mode;
+            }
+
+            selectDifficulty(selectedBtn) {
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                selectedBtn.classList.add('selected');
+                this.difficulty = selectedBtn.dataset.level;
+            }
+
+            toggleSound() {
+                this.soundEnabled = !this.soundEnabled;
+                const btn = document.getElementById('soundToggle');
+                if (this.soundEnabled) {
+                    btn.textContent = '🔊 เปิดเสียง';
+                    btn.classList.remove('muted');
+                } else {
+                    btn.textContent = '🔇 ปิดเสียง';
+                    btn.classList.add('muted');
+                }
+            }
+
+            startGame() {
+                const wordInput = document.getElementById('wordInput').value.trim();
+                
+                if (!wordInput) {
+                    alert('โปรดใส่คำศัพท์ก่อนเริ่มเกม');
+                    return;
+                }
+
+                this.words = wordInput.split(',').map(word => word.trim().toUpperCase()).filter(word => word.length > 0);
+                
+                if (this.words.length === 0) {
+                    alert('โปรดใส่คำศัพท์ที่ถูกต้อง');
+                    return;
+                }
+
+                this.currentWordIndex = 0;
+                this.completedWords = [];
+                this.stickers = [];
+                this.hintsUsed = 0;
+                
+                // Clear sticker collection
+                document.getElementById('stickerCollection').innerHTML = '';
+                
+                // Setup UI based on game mode
+                if (this.gameMode === 'hint') {
+                    document.getElementById('hintBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('hintBtn').style.display = 'none';
+                }
+                
+                if (this.gameMode === 'timed') {
+                    document.getElementById('timer').style.display = 'block';
+                } else {
+                    document.getElementById('timer').style.display = 'none';
+                }
+
+                this.showScreen('gameScreen');
+                this.setupCurrentWord();
+            }
+
+            setupCurrentWord() {
+                const word = this.words[this.currentWordIndex];
+                const progress = document.getElementById('progress');
+                progress.textContent = `คำที่ ${this.currentWordIndex + 1}/${this.words.length}`;
+
+                this.currentPuzzleData = this.createPuzzle(word);
+                this.renderPuzzle();
+                
+                // Reset scoring for current word
+                this.currentWordStartTime = Date.now();
+                this.currentWordHints = 0;
+                
+                // Reset hint
+                document.getElementById('hintBtn').disabled = false;
+                document.getElementById('hintDisplay').style.display = 'none';
+                document.getElementById('hintDisplay').textContent = '';
+                
+                // Start timer for timed mode
+                if (this.gameMode === 'timed') {
+                    this.startTimer();
+                }
+            }
+
+            startTimer() {
+                this.timeLeft = 30;
+                const timerDisplay = document.getElementById('timer');
+                timerDisplay.classList.remove('warning');
+                
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    timerDisplay.textContent = `⏰ ${this.timeLeft}`;
+                    
+                    if (this.timeLeft <= 10) {
+                        timerDisplay.classList.add('warning');
+                    }
+                    
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timer);
+                        this.playErrorSound();
+                        
+                        // Handle timeout as incorrect answer
+                        this.handleIncorrectAnswer();
+                        
+                        setTimeout(() => {
+                            this.nextWord();
+                        }, 1000);
+                    }
+                }, 1000);
+            }
+
+            showHint() {
+                if (this.hintsUsed >= 2) {
+                    alert('ใช้ใบ้ครบแล้วสำหรับเกมนี้!');
+                    return;
+                }
+                
+                const word = this.currentPuzzleData.word;
+                const hintDisplay = document.getElementById('hintDisplay');
+                
+                if (this.hintsUsed === 0) {
+                    hintDisplay.textContent = `ใบ้: คำนี้เริ่มต้นด้วย "${word[0]}"`;
+                } else {
+                    hintDisplay.textContent = `ใบ้: คำนี้มี ${word.length} ตัวอักษร และลงท้ายด้วย "${word[word.length-1]}"`;
+                }
+                
+                hintDisplay.style.display = 'block';
+                this.hintsUsed++;
+                this.currentWordHints++; // Track hints for current word
+                
+                if (this.hintsUsed >= 2) {
+                    document.getElementById('hintBtn').disabled = true;
+                }
+            }
+
+            pronounceWord() {
+                if (this.soundEnabled && 'speechSynthesis' in window) {
+                    // Stop any ongoing speech
+                    speechSynthesis.cancel();
+                    
+                    const utterance = new SpeechSynthesisUtterance(this.currentPuzzleData.word.toLowerCase());
+                    utterance.lang = 'en-US';
+                    utterance.rate = 0.8;
+                    utterance.volume = 0.8;
+                    
+                    // Handle iOS specific issues
+                    if (this.isMobile && /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                        // iOS requires user interaction to start speech
+                        utterance.onstart = () => {
+                            console.log('Speech started on iOS');
+                        };
+                        utterance.onerror = (e) => {
+                            console.log('Speech error on iOS:', e);
+                            // Fallback: show visual feedback only
+                            this.showWordVisually();
+                        };
+                    }
+                    
+                    speechSynthesis.speak(utterance);
+                } else {
+                    // Fallback for devices without speech synthesis
+                    this.showWordVisually();
+                }
+                
+                // Visual feedback
+                const btn = document.getElementById('pronounceBtn');
+                btn.style.animation = 'success 0.5s ease-in-out';
+                setTimeout(() => {
+                    btn.style.animation = '';
+                }, 500);
+            }
+
+            showWordVisually() {
+                // Visual alternative when speech fails
+                const wordDisplay = document.createElement('div');
+                wordDisplay.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: #667eea;
+                    color: white;
+                    padding: 20px 30px;
+                    border-radius: 15px;
+                    font-size: 2em;
+                    font-weight: bold;
+                    z-index: 1000;
+                    animation: bounceIn 0.5s ease-out;
+                `;
+                wordDisplay.textContent = this.currentPuzzleData.word;
+                document.body.appendChild(wordDisplay);
+                
+                setTimeout(() => {
+                    if (document.body.contains(wordDisplay)) {
+                        document.body.removeChild(wordDisplay);
+                    }
+                }, 2000);
+            }
+
+            addSticker() {
+                const stickers = ['⭐', '🎉', '🏆', '💎', '🌟', '🎊', '🔥', '✨'];
+                const randomSticker = stickers[Math.floor(Math.random() * stickers.length)];
+                this.stickers.push(randomSticker);
+                
+                const stickerCollection = document.getElementById('stickerCollection');
+                const stickerElement = document.createElement('span');
+                stickerElement.className = 'sticker';
+                stickerElement.textContent = randomSticker;
+                stickerCollection.appendChild(stickerElement);
+            }
+
+            createPuzzle(word) {
+                let pieces = [];
+                
+                switch (this.difficulty) {
+                    case 'easy':
+                        pieces = word.split('');
+                        break;
+                    case 'medium':
+                        pieces = this.splitIntoSyllables(word);
+                        break;
+                    case 'hard':
+                        pieces = this.splitMixed(word);
+                        break;
+                }
+
+                return {
+                    word: word,
+                    pieces: pieces,
+                    shuffledPieces: this.shuffleArray([...pieces])
+                };
+            }
+
+            splitIntoSyllables(word) {
+                // Simple syllable splitting for demonstration
+                const pieces = [];
+                let currentPiece = '';
+                
+                for (let i = 0; i < word.length; i++) {
+                    currentPiece += word[i];
+                    
+                    if (currentPiece.length >= 2 && Math.random() > 0.5) {
+                        pieces.push(currentPiece);
+                        currentPiece = '';
+                    }
+                }
+                
+                if (currentPiece) {
+                    pieces.push(currentPiece);
+                }
+                
+                return pieces.length > 1 ? pieces : word.split('');
+            }
+
+            splitMixed(word) {
+                const pieces = [];
+                let currentPiece = '';
+                
+                for (let i = 0; i < word.length; i++) {
+                    currentPiece += word[i];
+                    
+                    const shouldSplit = Math.random() > 0.6 || currentPiece.length >= 3;
+                    
+                    if (shouldSplit && currentPiece.length > 0) {
+                        pieces.push(currentPiece);
+                        currentPiece = '';
+                    }
+                }
+                
+                if (currentPiece) {
+                    pieces.push(currentPiece);
+                }
+                
+                return pieces.length > 1 ? pieces : word.split('');
+            }
+
+            shuffleArray(array) {
+                const shuffled = [...array];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                return shuffled;
+            }
+
+            renderPuzzle() {
+                const slotsContainer = document.getElementById('wordSlots');
+                const piecesContainer = document.getElementById('puzzlePieces');
+                
+                slotsContainer.innerHTML = '';
+                piecesContainer.innerHTML = '';
+
+                // Create slots
+                this.currentPuzzleData.pieces.forEach((piece, index) => {
+                    const slot = document.createElement('div');
+                    slot.className = 'slot';
+                    slot.dataset.index = index;
+                    slot.dataset.expectedPiece = piece;
+                    
+                    if (this.isMobile) {
+                        this.addMobileSlotListeners(slot);
+                    } else {
+                        this.addDropListeners(slot);
+                    }
+                    
+                    slotsContainer.appendChild(slot);
+                });
+
+                // Create puzzle pieces
+                this.currentPuzzleData.shuffledPieces.forEach((piece, index) => {
+                    const pieceElement = document.createElement('div');
+                    pieceElement.className = 'puzzle-piece';
+                    pieceElement.textContent = piece;
+                    pieceElement.dataset.piece = piece;
+                    
+                    if (this.isMobile) {
+                        this.addMobilePieceListeners(pieceElement);
+                    } else {
+                        pieceElement.draggable = true;
+                        this.addDragListeners(pieceElement);
+                    }
+                    
+                    piecesContainer.appendChild(pieceElement);
+                });
+            }
+
+            // Mobile-specific event listeners
+            addMobilePieceListeners(pieceElement) {
+                // Use touchend for better iOS compatibility
+                pieceElement.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (pieceElement.classList.contains('used')) {
+                        return;
+                    }
+                    
+                    // Clear previous selection
+                    document.querySelectorAll('.puzzle-piece').forEach(p => {
+                        p.classList.remove('selected-piece');
+                    });
+                    
+                    // Select this piece
+                    pieceElement.classList.add('selected-piece');
+                    this.selectedPiece = pieceElement.dataset.piece;
+                    
+                    // Haptic feedback if available
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(50);
+                    }
+                });
+                
+                // Click fallback for non-touch devices
+                pieceElement.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (pieceElement.classList.contains('used')) {
+                        return;
+                    }
+                    
+                    // Clear previous selection
+                    document.querySelectorAll('.puzzle-piece').forEach(p => {
+                        p.classList.remove('selected-piece');
+                    });
+                    
+                    // Select this piece
+                    pieceElement.classList.add('selected-piece');
+                    this.selectedPiece = pieceElement.dataset.piece;
+                });
+                
+                // Visual feedback for touch
+                pieceElement.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (!pieceElement.classList.contains('used')) {
+                        pieceElement.style.transform = 'scale(0.95)';
+                    }
+                });
+                
+                pieceElement.addEventListener('touchcancel', (e) => {
+                    e.preventDefault();
+                    pieceElement.style.transform = '';
+                });
+            }
+
+            addMobileSlotListeners(slot) {
+                // Use touchend for better iOS compatibility
+                slot.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (!this.selectedPiece || slot.classList.contains('occupied')) {
+                        return;
+                    }
+                    
+                    const expectedPiece = slot.dataset.expectedPiece;
+                    
+                    if (this.selectedPiece === expectedPiece) {
+                        slot.textContent = this.selectedPiece;
+                        slot.classList.add('occupied');
+                        
+                        // Mark the piece as used
+                        const pieceElement = document.querySelector(`[data-piece="${this.selectedPiece}"]`);
+                        if (pieceElement) {
+                            pieceElement.classList.add('used');
+                            pieceElement.classList.remove('selected-piece');
+                        }
+                        
+                        this.selectedPiece = null;
+                        
+                        // Haptic feedback for success
+                        if ('vibrate' in navigator) {
+                            navigator.vibrate([50, 50, 50]);
+                        }
+                        
+                        this.playSuccessSound();
+                        this.checkCompletion();
+                    } else {
+                        // Wrong placement - shake the slot
+                        slot.style.animation = 'shake 0.5s';
+                        setTimeout(() => {
+                            slot.style.animation = '';
+                        }, 500);
+                        
+                        // Haptic feedback for error
+                        if ('vibrate' in navigator) {
+                            navigator.vibrate(200);
+                        }
+                        
+                        this.playErrorSound();
+                    }
+                });
+                
+                // Click fallback
+                slot.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (!this.selectedPiece || slot.classList.contains('occupied')) {
+                        return;
+                    }
+                    
+                    const expectedPiece = slot.dataset.expectedPiece;
+                    
+                    if (this.selectedPiece === expectedPiece) {
+                        slot.textContent = this.selectedPiece;
+                        slot.classList.add('occupied');
+                        
+                        // Mark the piece as used
+                        const pieceElement = document.querySelector(`[data-piece="${this.selectedPiece}"]`);
+                        if (pieceElement) {
+                            pieceElement.classList.add('used');
+                            pieceElement.classList.remove('selected-piece');
+                        }
+                        
+                        this.selectedPiece = null;
+                        this.playSuccessSound();
+                        this.checkCompletion();
+                    } else {
+                        // Wrong placement - shake the slot
+                        slot.style.animation = 'shake 0.5s';
+                        setTimeout(() => {
+                            slot.style.animation = '';
+                        }, 500);
+                        
+                        this.playErrorSound();
+                    }
+                });
+                
+                // Visual feedback for touch
+                slot.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (!slot.classList.contains('occupied') && this.selectedPiece) {
+                        slot.classList.add('selected-slot');
+                    }
+                });
+                
+                slot.addEventListener('touchcancel', (e) => {
+                    e.preventDefault();
+                    slot.classList.remove('selected-slot');
+                });
+            }
+
+            addDragListeners(element) {
+                element.addEventListener('dragstart', (e) => {
+                    if (element.classList.contains('used')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    element.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', element.dataset.piece);
+                });
+
+                element.addEventListener('dragend', () => {
+                    element.classList.remove('dragging');
+                });
+            }
+
+            addDropListeners(slot) {
+                slot.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (!slot.classList.contains('occupied')) {
+                        slot.classList.add('drop-zone');
+                    }
+                });
+
+                slot.addEventListener('dragleave', () => {
+                    slot.classList.remove('drop-zone');
+                });
+
+                slot.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    slot.classList.remove('drop-zone');
+                    
+                    if (slot.classList.contains('occupied')) {
+                        return;
+                    }
+
+                    const droppedPiece = e.dataTransfer.getData('text/plain');
+                    const expectedPiece = slot.dataset.expectedPiece;
+                    
+                    if (droppedPiece === expectedPiece) {
+                        slot.textContent = droppedPiece;
+                        slot.classList.add('occupied');
+                        
+                        // Mark the dragged piece as used
+                        const pieceElement = document.querySelector(`[data-piece="${droppedPiece}"]`);
+                        if (pieceElement) {
+                            pieceElement.classList.add('used');
+                        }
+                        
+                        this.playSuccessSound();
+                        this.checkCompletion();
+                    } else {
+                        this.playErrorSound();
+                    }
+                });
+            }
+
+            checkCompletion() {
+                const slots = document.querySelectorAll('.slot');
+                const allFilled = Array.from(slots).every(slot => slot.classList.contains('occupied'));
+                
+                if (allFilled) {
+                    // Stop timer if in timed mode
+                    if (this.timer) {
+                        clearInterval(this.timer);
+                    }
+                    
+                    // Add sticker for completion
+                    this.addSticker();
+                    
+                    setTimeout(() => {
+                        this.showWritingScreen();
+                    }, 1000);
+                }
+            }
+
+            showWritingScreen() {
+                const word = this.currentPuzzleData.word;
+                document.getElementById('completeWord').textContent = word;
+                document.getElementById('writingInput').value = '';
+                document.getElementById('writingInput').className = 'writing-input';
+                document.getElementById('nextBtn').style.display = 'none';
+                
+                this.showScreen('writingScreen');
+                document.getElementById('writingInput').focus();
+            }
+
+            checkWriting() {
+                const input = document.getElementById('writingInput');
+                const expected = this.currentPuzzleData.word;
+                const userInput = input.value.toUpperCase();
+                
+                if (userInput === expected) {
+                    input.classList.remove('incorrect');
+                    input.classList.add('correct');
+                    this.showCelebration();
+                    
+                    // Calculate score for this word
+                    const wordScore = this.calculateWordScore();
+                    this.wordScores.push(wordScore);
+                    this.completedWords.push(expected);
+                    
+                    // Update streak
+                    this.consecutiveStreak++;
+                    this.maxStreak = Math.max(this.maxStreak, this.consecutiveStreak);
+                    
+                    setTimeout(() => {
+                        document.getElementById('nextBtn').style.display = 'block';
+                    }, 1000);
+                } else if (userInput.length > 0) {
+                    input.classList.remove('correct');
+                    input.classList.add('incorrect');
+                } else {
+                    input.classList.remove('correct', 'incorrect');
+                }
+            }
+
+            calculateWordScore() {
+                const completionTime = (Date.now() - this.currentWordStartTime) / 1000; // seconds
+                let score = {
+                    word: this.currentPuzzleData.word,
+                    baseScore: 100, // Base score for correct answer
+                    speedBonus: 0,
+                    noHintBonus: 0,
+                    streakMultiplier: 1,
+                    totalTime: completionTime,
+                    hintsUsed: this.currentWordHints,
+                    finalScore: 0
+                };
+                
+                // Speed bonus: +50 if completed within 15 seconds
+                if (completionTime <= 15) {
+                    score.speedBonus = 50;
+                }
+                
+                // No hint bonus: +25 if no hints were used
+                if (this.currentWordHints === 0) {
+                    score.noHintBonus = 25;
+                }
+                
+                // Streak multiplier (consecutive correct answers)
+                if (this.consecutiveStreak >= 5) {
+                    score.streakMultiplier = 4;
+                } else if (this.consecutiveStreak >= 3) {
+                    score.streakMultiplier = 3;
+                } else if (this.consecutiveStreak >= 2) {
+                    score.streakMultiplier = 2;
+                }
+                
+                // Calculate final score
+                const baseTotal = score.baseScore + score.speedBonus + score.noHintBonus;
+                score.finalScore = Math.round(baseTotal * score.streakMultiplier);
+                
+                return score;
+            }
+
+            calculateFinalScore() {
+                if (this.wordScores.length === 0) return 0;
+                
+                const totalPossibleScore = this.words.length * 175; // 100 + 50 + 25 per word (without streak)
+                const actualTotalScore = this.wordScores.reduce((sum, wordScore) => sum + wordScore.finalScore, 0);
+                
+                // Convert to percentage out of 100
+                return Math.min(100, Math.round((actualTotalScore / totalPossibleScore) * 100));
+            }
+
+            nextWord() {
+                this.currentWordIndex++;
+                
+                if (this.currentWordIndex >= this.words.length) {
+                    this.showSummaryScreen();
+                } else {
+                    this.showScreen('gameScreen');
+                    this.setupCurrentWord();
+                }
+            }
+
+            // Handle incorrect answers (break streak)
+            handleIncorrectAnswer() {
+                this.consecutiveStreak = 0;
+                
+                // Add failed word to scores with 0 points
+                const wordScore = {
+                    word: this.currentPuzzleData.word,
+                    baseScore: 0,
+                    speedBonus: 0,
+                    noHintBonus: 0,
+                    streakMultiplier: 1,
+                    totalTime: (Date.now() - this.currentWordStartTime) / 1000,
+                    hintsUsed: this.currentWordHints,
+                    finalScore: 0
+                };
+                this.wordScores.push(wordScore);
+            }
+
+            showSummaryScreen() {
+                const finalScore = this.calculateFinalScore();
+                const wordListContainer = document.getElementById('wordList');
+                const completedCount = this.completedWords.length;
+                const totalCount = this.words.length;
+                
+                // Update star rating based on final score
+                let stars = '';
+                if (finalScore >= 90) stars = '⭐⭐⭐⭐⭐';
+                else if (finalScore >= 80) stars = '⭐⭐⭐⭐';
+                else if (finalScore >= 70) stars = '⭐⭐⭐';
+                else if (finalScore >= 60) stars = '⭐⭐';
+                else stars = '⭐';
+                
+                document.getElementById('starRating').textContent = stars;
+                
+                // Generate detailed word list with scores
+                let listHTML = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h3 style="color: #2d3748; margin-bottom: 15px;">🏆 คะแนนรวม: ${finalScore}/100</h3>
+                        <div style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 15px; border-radius: 15px; margin-bottom: 15px;">
+                            <div style="font-size: 1.2em; font-weight: bold;">สถิติการเล่น</div>
+                            <div style="margin-top: 10px;">
+                                <div>✅ ถูกต้อง: ${completedCount}/${totalCount} คำ</div>
+                                <div>🔥 Streak สูงสุด: ${this.maxStreak} คำติดต่อกัน</div>
+                                <div>🎯 ความแม่นยำ: ${Math.round((completedCount/totalCount)*100)}%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 style="color: #4a5568; margin-bottom: 15px;">📊 รายละเอียดคะแนนแต่ละคำ</h3>
+                `;
+                
+                this.wordScores.forEach((wordScore, index) => {
+                    const isCorrect = this.completedWords.includes(wordScore.word);
+                    const statusEmoji = isCorrect ? '✅' : '❌';
+                    const scoreColor = isCorrect ? '#48bb78' : '#f56565';
+                    
+                    listHTML += `
+                        <div class="score-item" style="border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 10px; background: ${isCorrect ? '#f0fff4' : '#fef5e7'};">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-weight: bold; color: #2d3748;">${statusEmoji} ${wordScore.word}</span>
+                                <span style="font-weight: bold; color: ${scoreColor}; font-size: 1.1em;">${wordScore.finalScore} คะแนน</span>
+                            </div>
+                            ${isCorrect ? `
+                            <div style="font-size: 0.9em; color: #4a5568; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                                <div>📝 พื้นฐาน: ${wordScore.baseScore}</div>
+                                <div>⚡ ความเร็ว: +${wordScore.speedBonus}</div>
+                                <div>💡 ไม่ใช้ใบ้: +${wordScore.noHintBonus}</div>
+                                <div>🔥 Streak: x${wordScore.streakMultiplier}</div>
+                                <div>⏱️ เวลา: ${wordScore.totalTime.toFixed(1)}s</div>
+                                <div>💭 ใบ้: ${wordScore.hintsUsed} ครั้ง</div>
+                            </div>
+                            ` : '<div style="font-size: 0.9em; color: #718096;">ไม่ผ่าน</div>'}
+                        </div>
+                    `;
+                });
+                
+                // Add grade and feedback
+                let grade = '';
+                let feedback = '';
+                if (finalScore >= 90) {
+                    grade = 'A+';
+                    feedback = 'เยี่ยมเลิศ! คุณเก่งมาก! 🏆';
+                } else if (finalScore >= 80) {
+                    grade = 'A';
+                    feedback = 'เก่งมาก! ผลงานดีเยี่ยม! 🌟';
+                } else if (finalScore >= 70) {
+                    grade = 'B+';
+                    feedback = 'ดีมาก! กำลังก้าวหน้า! 👍';
+                } else if (finalScore >= 60) {
+                    grade = 'B';
+                    feedback = 'ดี! ต้องฝึกเพิ่มนิดหน่อย! 💪';
+                } else if (finalScore >= 50) {
+                    grade = 'C';
+                    feedback = 'พอใช้ ลองฝึกเพิ่มเติมนะ! 📚';
+                } else {
+                    grade = 'D';
+                    feedback = 'ต้องฝึกเพิ่มเยอะๆ แต่ไม่เป็นไร! 🎯';
+                }
+                
+                listHTML += `
+                    <div style="text-align: center; margin-top: 20px; padding: 15px; background: linear-gradient(45deg, #ffd700, #ffed4e); border-radius: 15px;">
+                        <div style="font-size: 1.3em; font-weight: bold; color: #744210;">เกรด: ${grade}</div>
+                        <div style="color: #744210; margin-top: 5px;">${feedback}</div>
+                    </div>
+                `;
+                
+                wordListContainer.innerHTML = listHTML;
+                this.showScreen('summaryScreen');
+            }
+
+            playAgain() {
+                this.currentWordIndex = 0;
+                this.completedWords = [];
+                this.stickers = [];
+                this.hintsUsed = 0;
+                this.selectedPiece = null;
+                
+                // Reset scoring system
+                this.wordScores = [];
+                this.currentWordStartTime = 0;
+                this.currentWordHints = 0;
+                this.consecutiveStreak = 0;
+                this.maxStreak = 0;
+                
+                document.getElementById('stickerCollection').innerHTML = '';
+                this.showScreen('gameScreen');
+                this.setupCurrentWord();
+            }
+
+            newGame() {
+                this.currentWordIndex = 0;
+                this.completedWords = [];
+                this.words = [];
+                this.stickers = [];
+                this.hintsUsed = 0;
+                this.selectedPiece = null;
+                
+                // Reset scoring system
+                this.wordScores = [];
+                this.currentWordStartTime = 0;
+                this.currentWordHints = 0;
+                this.consecutiveStreak = 0;
+                this.maxStreak = 0;
+                
+                document.getElementById('wordInput').value = '';
+                document.getElementById('stickerCollection').innerHTML = '';
+                this.showScreen('setupScreen');
+            }
+
+            showScreen(screenId) {
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                document.getElementById(screenId).classList.add('active');
+            }
+
+            showCelebration() {
+                const celebration = document.createElement('div');
+                celebration.className = 'celebration';
+                celebration.textContent = '🎉';
+                document.body.appendChild(celebration);
+                
+                setTimeout(() => {
+                    if (document.body.contains(celebration)) {
+                        document.body.removeChild(celebration);
+                    }
+                }, 1000);
+            }
+
+            playSuccessSound() {
+                if (this.soundEnabled) {
+                    this.playTone(800, 150);
+                }
+                
+                // Visual feedback for success
+                const slots = document.querySelectorAll('.slot.occupied');
+                slots.forEach(slot => {
+                    slot.classList.add('success-animation');
+                    setTimeout(() => {
+                        slot.classList.remove('success-animation');
+                    }, 500);
+                });
+            }
+
+            playErrorSound() {
+                if (this.soundEnabled) {
+                    this.playTone(200, 300);
+                }
+                
+                // Visual feedback for error
+                const gameScreen = document.getElementById('gameScreen');
+                gameScreen.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    gameScreen.style.animation = '';
+                }, 500);
+            }
+
+            playTone(frequency, duration) {
+                if (!this.soundEnabled) return;
+                
+                try {
+                    // Initialize AudioContext only when needed
+                    if (!this.audioContext) {
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    
+                    // Resume AudioContext if suspended (iOS requirement)
+                    if (this.audioContext.state === 'suspended') {
+                        this.audioContext.resume();
+                    }
+                    
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration / 1000);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + duration / 1000);
+                } catch (e) {
+                    // Fallback for devices without audio support
+                    console.log('Audio not supported:', e);
+                    
+                    // Visual feedback as fallback
+                    if (frequency > 400) {
+                        // Success tone - green flash
+                        document.body.style.backgroundColor = '#48bb78';
+                        setTimeout(() => {
+                            document.body.style.backgroundColor = '';
+                        }, 150);
+                    } else {
+                        // Error tone - red flash
+                        document.body.style.backgroundColor = '#f56565';
+                        setTimeout(() => {
+                            document.body.style.backgroundColor = '';
+                        }, 300);
+                    }
+                }
+            }
+
+            // Vocabulary Sets Management
+            loadSavedSets() {
+                try {
+                    const saved = JSON.parse(localStorage.getItem('jigsawSpellerSets') || '[]');
+                    return saved;
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            saveSetsToStorage() {
+                try {
+                    localStorage.setItem('jigsawSpellerSets', JSON.stringify(this.savedSets));
+                } catch (e) {
+                    console.log('Cannot save to localStorage');
+                }
+            }
+
+            toggleSetsVisibility() {
+                const content = document.getElementById('vocabSetsContent');
+                const btn = document.getElementById('toggleSetsBtn');
+                
+                if (content.style.display === 'none') {
+                    content.style.display = 'block';
+                    btn.textContent = '🔼 ซ่อน';
+                } else {
+                    content.style.display = 'none';
+                    btn.textContent = '🔽 แสดง/ซ่อน';
+                }
+            }
+
+            saveVocabSet() {
+                const setName = document.getElementById('setNameInput').value.trim();
+                const words = document.getElementById('wordInput').value.trim();
+                
+                if (!setName) {
+                    alert('โปรดใส่ชื่อชุดคำศัพท์');
+                    return;
+                }
+                
+                if (!words) {
+                    alert('โปรดใส่คำศัพท์ก่อนบันทึก');
+                    return;
+                }
+                
+                const wordsArray = words.split(',').map(word => word.trim()).filter(word => word.length > 0);
+                
+                if (wordsArray.length === 0) {
+                    alert('โปรดใส่คำศัพท์ที่ถูกต้อง');
+                    return;
+                }
+                
+                // Check if set name already exists
+                const existingIndex = this.savedSets.findIndex(set => set.name === setName);
+                
+                const newSet = {
+                    name: setName,
+                    words: wordsArray,
+                    createdAt: new Date().toLocaleDateString('th-TH'),
+                    wordCount: wordsArray.length
+                };
+                
+                if (existingIndex >= 0) {
+                    if (confirm(`ชุดคำศัพท์ "${setName}" มีอยู่แล้ว ต้องการแทนที่หรือไม่?`)) {
+                        this.savedSets[existingIndex] = newSet;
+                    } else {
+                        return;
+                    }
+                } else {
+                    this.savedSets.push(newSet);
+                }
+                
+                this.saveSetsToStorage();
+                this.renderSavedSets();
+                document.getElementById('setNameInput').value = '';
+                
+                // Success feedback
+                const btn = document.getElementById('saveSetBtn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ บันทึกแล้ว!';
+                btn.style.background = 'linear-gradient(45deg, #48bb78, #38a169)';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = 'linear-gradient(45deg, #48bb78, #38a169)';
+                }, 2000);
+            }
+
+            loadVocabSet(setName) {
+                const set = this.savedSets.find(s => s.name === setName);
+                if (set) {
+                    document.getElementById('wordInput').value = set.words.join(', ');
+                    
+                    // Visual feedback
+                    const wordInput = document.getElementById('wordInput');
+                    wordInput.style.background = '#c6f6d5';
+                    wordInput.style.borderColor = '#48bb78';
+                    
+                    setTimeout(() => {
+                        wordInput.style.background = '';
+                        wordInput.style.borderColor = '';
+                    }, 1000);
+                }
+            }
+
+            deleteVocabSet(setName) {
+                if (confirm(`ต้องการลบชุดคำศัพท์ "${setName}" หรือไม่?`)) {
+                    this.savedSets = this.savedSets.filter(set => set.name !== setName);
+                    this.saveSetsToStorage();
+                    this.renderSavedSets();
+                }
+            }
+
+            renderSavedSets() {
+                const container = document.getElementById('savedSets');
+                
+                if (this.savedSets.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; color: #718096; padding: 20px; grid-column: 1 / -1;">
+                            📝 ยังไม่มีชุดคำศัพท์ที่บันทึก<br>
+                            <small>ใส่คำศัพท์แล้วกดบันทึกชุดเพื่อใช้งานในครั้งต่อไป</small>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = this.savedSets.map(set => `
+                    <div class="vocab-set-card">
+                        <div class="set-card-header">
+                            <div class="set-name">${set.name}</div>
+                            <button class="delete-btn" onclick="game.deleteVocabSet('${set.name}')">🗑️</button>
+                        </div>
+                        <div class="set-info">
+                            📅 ${set.createdAt} | 📝 ${set.wordCount} คำ
+                        </div>
+                        <div class="set-words-preview">
+                            ${set.words.slice(0, 5).join(', ')}${set.words.length > 5 ? '...' : ''}
+                        </div>
+                        <div class="set-actions">
+                            <button class="load-btn" onclick="game.loadVocabSet('${set.name}')">
+                                📂 โหลดชุด
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            startGame() {
+                const wordInput = document.getElementById('wordInput').value.trim();
+                
+                if (!wordInput) {
+                    alert('โปรดใส่คำศัพท์ก่อนเริ่มเกม');
+                    return;
+                }
+
+                this.words = wordInput.split(',').map(word => word.trim().toUpperCase()).filter(word => word.length > 0);
+                
+                if (this.words.length === 0) {
+                    alert('โปรดใส่คำศัพท์ที่ถูกต้อง');
+                    return;
+                }
+
+                // Initialize audio context on user interaction
+                this.initializeAudioContext();
+
+                this.currentWordIndex = 0;
+                this.completedWords = [];
+                this.stickers = [];
+                this.hintsUsed = 0;
+                this.selectedPiece = null;
+                
+                // Clear sticker collection
+                document.getElementById('stickerCollection').innerHTML = '';
+                
+                // Setup UI based on game mode
+                if (this.gameMode === 'hint') {
+                    document.getElementById('hintBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('hintBtn').style.display = 'none';
+                }
+                
+                if (this.gameMode === 'timed') {
+                    document.getElementById('timer').style.display = 'block';
+                } else {
+                    document.getElementById('timer').style.display = 'none';
+                }
+
+                this.showScreen('gameScreen');
+                this.setupCurrentWord();
+            }
+        }
+
+        // Initialize the game
+        new JigsawSpeller();
+    </script>
+</body>
+</html>
