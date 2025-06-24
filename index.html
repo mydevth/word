@@ -57,6 +57,8 @@
             <h1 class="text-4xl font-bold text-center text-blue-600 mb-2">Jigsaw Speller</h1>
             <p class="text-center text-gray-500 mb-6">ถอดรหัสจิ๊กซอว์ศัพท์</p>
             
+            <p id="error-message" class="text-red-500 text-center mb-4 hidden"></p>
+
             <div class="mb-4">
                 <label for="word-input" class="block text-lg font-semibold mb-2 text-gray-700">ใส่คำศัพท์ประจำสัปดาห์ (คั่นด้วย ,)</label>
                 <textarea id="word-input" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 font-inter" rows="4" placeholder="เช่น computer, beautiful, elephant, happy"></textarea>
@@ -84,7 +86,7 @@
             <!-- ส่วนต่อจิ๊กซอว์ -->
             <div id="jigsaw-section">
                 <p class="text-center text-gray-600 mb-4 text-lg">ลากชิ้นส่วนมาวางในช่องให้ถูกต้อง</p>
-                <div id="drop-zone-container" class="flex justify-center items-center gap-2 mb-8 min-h-[80px]">
+                <div id="drop-zone-container" class="flex justify-center items-center flex-wrap gap-2 mb-8 min-h-[80px]">
                     <!-- Drop zones will be generated here -->
                 </div>
                 <div id="piece-container" class="flex justify-center items-center gap-2 flex-wrap min-h-[80px] bg-blue-100 p-4 rounded-lg">
@@ -126,6 +128,7 @@
         const wordInput = document.getElementById('word-input');
         const difficultySelect = document.getElementById('difficulty');
         const startGameBtn = document.getElementById('start-game-btn');
+        const errorMsg = document.getElementById('error-message');
 
         const progressIndicator = document.getElementById('progress-indicator');
         const quitGameBtn = document.getElementById('quit-game-btn');
@@ -180,13 +183,15 @@
                     .filter(word => word.length > 0);
 
                 if (words.length === 0) {
-                    alert('กรุณาใส่คำศัพท์อย่างน้อย 1 คำ');
+                    errorMsg.textContent = 'กรุณาใส่คำศัพท์อย่างน้อย 1 คำ';
+                    errorMsg.classList.remove('hidden');
                     return;
                 }
                 wordList = words;
                 difficulty = difficultySelect.value;
             }
             
+            errorMsg.classList.add('hidden');
             currentWordIndex = 0;
             
             setupScreen.classList.add('hidden');
@@ -210,22 +215,23 @@
             const currentWord = wordList[currentWordIndex];
             progressIndicator.textContent = `คำที่ ${currentWordIndex + 1} / ${wordList.length}`;
             
-            const pieces = splitWord(currentWord, difficulty);
-            originalPieces = splitWord(currentWord, difficulty); // Unshuffled version
-            const shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
+            originalPieces = splitWord(currentWord, difficulty);
+            const shuffledPieces = [...originalPieces].sort(() => Math.random() - 0.5);
 
             renderJigsaw(shuffledPieces, originalPieces);
         }
 
+        // --- FIXED FUNCTION ---
         function splitWord(word, level) {
-            if (word.length <= 3) return word.split('');
+            if (!word) return [];
+
             switch (level) {
                 case 'easy':
                     return word.split('');
-                case 'hard': // Mix of single and double letters
+                case 'hard':
                     let hardPieces = [];
                     for (let i = 0; i < word.length; i++) {
-                        if (Math.random() > 0.6 && i < word.length - 1) {
+                        if (Math.random() > 0.5 && i < word.length - 1) {
                             hardPieces.push(word.substring(i, i + 2));
                             i++;
                         } else {
@@ -233,14 +239,23 @@
                         }
                     }
                     return hardPieces;
-                case 'medium': // Default, split into 2-3 parts
+                case 'medium':
                 default:
                     const len = word.length;
-                    if (len <= 5) return [word.substring(0, 2), word.substring(2)];
-                    if (len <= 8) return [word.substring(0, 3), word.substring(3, 6), word.substring(6)];
-                    const part1 = Math.floor(len / 3);
-                    const part2 = Math.floor(len / 3);
-                    return [word.substring(0, part1), word.substring(part1, part1 + part2), word.substring(part1 + part2)];
+                    const pieces = [];
+                    if (len <= 4) { // For 1, 2, 3, 4 letter words
+                        const mid = Math.ceil(len / 2);
+                        pieces.push(word.substring(0, mid));
+                        pieces.push(word.substring(mid));
+                    } else { // For 5+ letter words, split into 3 parts
+                        const p1_len = Math.ceil(len / 3);
+                        const p2_len = Math.ceil((len - p1_len) / 2);
+                        pieces.push(word.substring(0, p1_len));
+                        pieces.push(word.substring(p1_len, p1_len + p2_len));
+                        pieces.push(word.substring(p1_len + p2_len));
+                    }
+                    // Failsafe to remove any accidentally created empty pieces
+                    return pieces.filter(p => p.length > 0);
             }
         }
         
@@ -248,17 +263,17 @@
             dropZoneContainer.innerHTML = '';
             pieceContainer.innerHTML = '';
 
-            correctOrder.forEach((_, index) => {
+            correctOrder.forEach((pieceText, index) => {
                 const dropZone = document.createElement('div');
                 dropZone.classList.add('drop-zone', 'border-2', 'border-dashed', 'border-gray-400', 'rounded-lg', 'text-gray-400', 'flex', 'items-center', 'justify-center', 'font-inter', 'font-bold');
-                dropZone.style.width = `${correctOrder[index].length * 20 + 40}px`;
+                dropZone.style.width = `${pieceText.length * 20 + 40}px`;
                 dropZone.style.height = `60px`;
                 dropZone.dataset.index = index;
                 dropZone.textContent = '?';
                 dropZoneContainer.appendChild(dropZone);
             });
 
-            pieces.forEach((pieceText, index) => {
+            pieces.forEach((pieceText) => {
                 const piece = document.createElement('div');
                 piece.textContent = pieceText;
                 piece.classList.add('jigsaw-piece', 'bg-white', 'p-4', 'rounded-lg', 'font-inter', 'font-bold', 'text-xl', 'text-blue-700', 'border-2', 'border-blue-300');
@@ -350,7 +365,9 @@
 
                 setTimeout(() => {
                     writingInput.classList.remove('border-green-500');
-                    writingSection.removeChild(feedback);
+                    if(writingSection.contains(feedback)) {
+                        writingSection.removeChild(feedback);
+                    }
                     currentWordIndex++;
                     loadWord();
                 }, 1000);
