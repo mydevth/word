@@ -1,216 +1,180 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jigsaw Speller V2: ถอดรหัสจิ๊กซอว์ศัพท์</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;600&family=Inter:wght@400;700&display=swap"
-    rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Mitr', sans-serif;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -khtml-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-
-    .font-inter {
-      font-family: 'Inter', sans-serif;
-    }
-
-    .jigsaw-piece {
-      touch-action: none;
-      cursor: grab;
-      transition: all 0.2s ease-in-out;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .jigsaw-piece.dragging {
-      opacity: 0.5;
-      cursor: grabbing;
-      transform: scale(1.1);
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .drop-zone {
-      transition: all 0.2s ease-in-out;
-    }
-
-    .drop-zone.over {
-      transform: scale(1.05);
-      background-color: #f0fdf4;
-      /* green-50 */
-      border-color: #22c55e;
-      /* green-500 */
-    }
-
-    .locked {
-      background-color: #4ade80 !important;
-      color: white !important;
-      border-color: #22c55e !important;
-      cursor: not-allowed;
-    }
-
-    .shake {
-      animation: shake 0.5s;
-    }
-
-    @keyframes shake {
-
-      0%,
-      100% {
-        transform: translateX(0);
-      }
-
-      25% {
-        transform: translateX(-10px);
-      }
-
-      75% {
-        transform: translateX(10px);
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jigsaw Speller: ถอดรหัสจิ๊กซอว์ศัพท์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;600&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Mitr', sans-serif;
+            /* Prevent text selection and callouts on mobile */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .font-inter {
+            font-family: 'Inter', sans-serif;
+        }
+        .jigsaw-piece {
+            touch-action: none; /* Important for touch drag */
+            cursor: grab;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .jigsaw-piece.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+            transform: scale(1.1);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+            /* Keep the piece on top while dragging */
+            z-index: 1000; 
+        }
+        .drop-zone {
+            transition: all 0.2s ease-in-out;
+        }
+        .drop-zone.over {
+            transform: scale(1.05);
+            background-color: #f0fdf4; /* green-50 */
+            border-color: #22c55e; /* green-500 */
+        }
+        .locked {
+            background-color: #4ade80 !important;
+            color: white !important;
+            border-color: #22c55e !important;
+            cursor: not-allowed;
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
 </head>
-
 <body class="bg-blue-50 text-gray-800 flex items-center justify-center min-h-screen p-4">
 
-  <div id="app-container" class="w-full max-w-2xl mx-auto">
+    <div id="app-container" class="w-full max-w-2xl mx-auto">
+        
+        <!-- Setup Screen -->
+        <div id="setup-screen" class="bg-white p-8 rounded-2xl shadow-lg">
+            <h1 class="text-4xl font-bold text-center text-blue-600 mb-2">Jigsaw Speller</h1>
+            <p class="text-center text-gray-500 mb-6">ถอดรหัสจิ๊กซอว์ศัพท์</p>
+            
+            <p id="error-message" class="text-red-500 text-center mb-4 hidden"></p>
 
-    <!-- Setup Screen -->
-    <div id="setup-screen" class="bg-white p-8 rounded-2xl shadow-lg">
-      <h1 class="text-4xl font-bold text-center text-blue-600 mb-2">Jigsaw Speller</h1>
-      <p class="text-center text-gray-500 mb-6">ถอดรหัสจิ๊กซอว์ศัพท์</p>
+            <div class="mb-4">
+                <label for="word-input" class="block text-lg font-semibold mb-2 text-gray-700">ใส่คำศัพท์ประจำสัปดาห์ (คั่นด้วย ,)</label>
+                <textarea id="word-input" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 font-inter" rows="4" placeholder="เช่น computer, beautiful, apple, happy"></textarea>
+            </div>
+            
+            <div class="mb-6">
+                <label for="difficulty" class="block text-lg font-semibold mb-2 text-gray-700">เลือกระดับความยาก</label>
+                <select id="difficulty" class="w-full p-3 border-2 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
+                    <option value="easy">ง่าย (แยกเป็นตัวอักษร)</option>
+                    <option value="medium" selected>ปานกลาง (แยกเป็น 2-3 ส่วน)</option>
+                    <option value="hard">ยาก (ผสมกัน)</option>
+                </select>
+            </div>
+            
+            <button id="start-game-btn" class="w-full bg-blue-600 text-white text-2xl font-bold py-4 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md">เริ่มภารกิจ!</button>
+        </div>
 
-      <p id="error-message" class="text-red-500 text-center mb-4 hidden"></p>
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="progress-indicator" class="text-xl font-bold text-blue-700"></h2>
+                <button id="quit-game-btn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 text-sm">ออกจากเกม</button>
+            </div>
 
-      <div class="mb-4">
-        <label for="word-input" class="block text-lg font-semibold mb-2 text-gray-700">ใส่คำศัพท์ประจำสัปดาห์ (คั่นด้วย
-          ,)</label>
-        <textarea id="word-input"
-          class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 font-inter"
-          rows="4" placeholder="เช่น computer, beautiful, apple, happy"></textarea>
-      </div>
+            <!-- Jigsaw Section -->
+            <div id="jigsaw-section">
+                <p class="text-center text-gray-600 mb-4 text-lg">ลากชิ้นส่วนมาวางในช่องให้ถูกต้อง</p>
+                <div id="drop-zone-container" class="flex justify-center items-center flex-wrap gap-2 mb-8 min-h-[80px]"></div>
+                <div id="piece-container" class="flex justify-center items-center gap-2 flex-wrap min-h-[80px] bg-blue-100 p-4 rounded-lg"></div>
+            </div>
 
-      <div class="mb-6">
-        <label for="difficulty" class="block text-lg font-semibold mb-2 text-gray-700">เลือกระดับความยาก</label>
-        <select id="difficulty"
-          class="w-full p-3 border-2 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
-          <option value="easy">ง่าย (แยกเป็นตัวอักษร)</option>
-          <option value="medium" selected>ปานกลาง (แยกเป็น 2-3 ส่วน)</option>
-          <option value="hard">ยาก (ผสมกัน)</option>
-        </select>
-      </div>
+            <!-- Writing Section -->
+            <div id="writing-section" class="hidden mt-8 text-center">
+                <p class="text-2xl font-semibold text-green-600 mb-4">ยอดเยี่ยม! ต่อจิ๊กซอว์สำเร็จ</p>
+                <p class="text-lg text-gray-700 mb-2">ลองเขียนคำนี้ด้วยตัวเองดูสิ</p>
+                <div id="correct-word-display" class="font-inter text-4xl font-bold text-blue-600 mb-4"></div>
+                <input type="text" id="writing-input" class="font-inter text-center text-2xl p-3 border-2 border-gray-300 rounded-lg w-full max-w-md mx-auto focus:ring-2 focus:ring-blue-400 focus:border-blue-400" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                <button id="check-writing-btn" class="mt-4 bg-green-500 text-white text-xl font-bold py-3 px-8 rounded-lg hover:bg-green-600">ตรวจคำตอบ</button>
+            </div>
+        </div>
 
-      <button id="start-game-btn"
-        class="w-full bg-blue-600 text-white text-2xl font-bold py-4 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md">เริ่มภารกิจ!</button>
+        <!-- Summary Screen -->
+        <div id="summary-screen" class="hidden bg-white p-8 rounded-2xl shadow-lg text-center">
+             <h1 class="text-4xl font-bold text-green-600 mb-2">ภารกิจสำเร็จ!</h1>
+             <p class="text-lg text-gray-600 mb-6">คุณคือสุดยอดสายลับคำศัพท์!</p>
+             <div id="summary-list" class="text-left mb-8 bg-gray-50 p-4 rounded-lg"></div>
+             <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button id="play-again-btn" class="w-full sm:w-auto bg-blue-600 text-white text-lg font-bold py-3 px-6 rounded-lg hover:bg-blue-700">เล่นซ้ำ (ชุดเดิม)</button>
+                <button id="new-game-btn" class="w-full sm:w-auto bg-gray-700 text-white text-lg font-bold py-3 px-6 rounded-lg hover:bg-gray-800">เริ่มภารกิจใหม่</button>
+             </div>
+        </div>
     </div>
 
-    <!-- Game Screen -->
-    <div id="game-screen" class="hidden bg-white p-6 md:p-8 rounded-2xl shadow-lg">
-      <div class="flex justify-between items-center mb-6">
-        <h2 id="progress-indicator" class="text-xl font-bold text-blue-700"></h2>
-        <button id="quit-game-btn"
-          class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 text-sm">ออกจากเกม</button>
-      </div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const setupScreen = document.getElementById('setup-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const summaryScreen = document.getElementById('summary-screen');
+    const wordInput = document.getElementById('word-input');
+    const difficultySelect = document.getElementById('difficulty');
+    const startGameBtn = document.getElementById('start-game-btn');
+    const errorMsg = document.getElementById('error-message');
+    const progressIndicator = document.getElementById('progress-indicator');
+    const quitGameBtn = document.getElementById('quit-game-btn');
+    const dropZoneContainer = document.getElementById('drop-zone-container');
+    const pieceContainer = document.getElementById('piece-container');
+    const jigsawSection = document.getElementById('jigsaw-section');
+    const writingSection = document.getElementById('writing-section');
+    const correctWordDisplay = document.getElementById('correct-word-display');
+    const writingInput = document.getElementById('writing-input');
+    const checkWritingBtn = document.getElementById('check-writing-btn');
+    const summaryList = document.getElementById('summary-list');
+    const playAgainBtn = document.getElementById('play-again-btn');
+    const newGameBtn = document.getElementById('new-game-btn');
 
-      <!-- Jigsaw Section -->
-      <div id="jigsaw-section">
-        <p class="text-center text-gray-600 mb-4 text-lg">ลากชิ้นส่วนมาวางในช่องให้ถูกต้อง</p>
-        <div id="drop-zone-container" class="flex justify-center items-center flex-wrap gap-2 mb-8 min-h-[80px]"></div>
-        <div id="piece-container"
-          class="flex justify-center items-center gap-2 flex-wrap min-h-[80px] bg-blue-100 p-4 rounded-lg"></div>
-      </div>
+    let wordList = [];
+    let currentWordIndex = 0;
+    let draggedPiece = null;
 
-      <!-- Writing Section -->
-      <div id="writing-section" class="hidden mt-8 text-center">
-        <p class="text-2xl font-semibold text-green-600 mb-4">ยอดเยี่ยม! ต่อจิ๊กซอว์สำเร็จ</p>
-        <p class="text-lg text-gray-700 mb-2">ลองเขียนคำนี้ด้วยตัวเองดูสิ</p>
-        <div id="correct-word-display" class="font-inter text-4xl font-bold text-blue-600 mb-4"></div>
-        <input type="text" id="writing-input"
-          class="font-inter text-center text-2xl p-3 border-2 border-gray-300 rounded-lg w-full max-w-md mx-auto focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-        <button id="check-writing-btn"
-          class="mt-4 bg-green-500 text-white text-xl font-bold py-3 px-8 rounded-lg hover:bg-green-600">ตรวจคำตอบ</button>
-      </div>
-    </div>
-
-    <!-- Summary Screen -->
-    <div id="summary-screen" class="hidden bg-white p-8 rounded-2xl shadow-lg text-center">
-      <h1 class="text-4xl font-bold text-green-600 mb-2">ภารกิจสำเร็จ!</h1>
-      <p class="text-lg text-gray-600 mb-6">คุณคือสุดยอดสายลับคำศัพท์!</p>
-      <div id="summary-list" class="text-left mb-8 bg-gray-50 p-4 rounded-lg"></div>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <button id="play-again-btn"
-          class="w-full sm:w-auto bg-blue-600 text-white text-lg font-bold py-3 px-6 rounded-lg hover:bg-blue-700">เล่นซ้ำ
-          (ชุดเดิม)</button>
-        <button id="new-game-btn"
-          class="w-full sm:w-auto bg-gray-700 text-white text-lg font-bold py-3 px-6 rounded-lg hover:bg-gray-800">เริ่มภารกิจใหม่</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // --- ELEMENT SELECTORS ---
-      const setupScreen = document.getElementById('setup-screen');
-      const gameScreen = document.getElementById('game-screen');
-      const summaryScreen = document.getElementById('summary-screen');
-      const wordInput = document.getElementById('word-input');
-      const difficultySelect = document.getElementById('difficulty');
-      const startGameBtn = document.getElementById('start-game-btn');
-      const errorMsg = document.getElementById('error-message');
-      const progressIndicator = document.getElementById('progress-indicator');
-      const quitGameBtn = document.getElementById('quit-game-btn');
-      const dropZoneContainer = document.getElementById('drop-zone-container');
-      const pieceContainer = document.getElementById('piece-container');
-      const jigsawSection = document.getElementById('jigsaw-section');
-      const writingSection = document.getElementById('writing-section');
-      const correctWordDisplay = document.getElementById('correct-word-display');
-      const writingInput = document.getElementById('writing-input');
-      const checkWritingBtn = document.getElementById('check-writing-btn');
-      const summaryList = document.getElementById('summary-list');
-      const playAgainBtn = document.getElementById('play-again-btn');
-      const newGameBtn = document.getElementById('new-game-btn');
-
-      // --- GAME STATE ---
-      let wordList = [];
-      let currentWordIndex = 0;
-      let draggedPiece = null;
-
-      // --- FUNCTIONS ---
-      const switchScreen = (screenToShow) => {
+    const switchScreen = (screenToShow) => {
         [setupScreen, gameScreen, summaryScreen].forEach(screen => screen.classList.add('hidden'));
         screenToShow.classList.remove('hidden');
-      };
+    };
 
-      const startGame = (isReplay = false) => {
+    const startGame = (isReplay = false) => {
         if (!isReplay) {
-          const words = wordInput.value.split(',')
-            .map(word => word.trim().toLowerCase())
-            .filter(word => /^[a-z]+$/.test(word));
-          if (words.length === 0) {
-            errorMsg.textContent = 'กรุณาใส่คำศัพท์ภาษาอังกฤษอย่างน้อย 1 คำ';
-            errorMsg.classList.remove('hidden');
-            return;
-          }
-          wordList = words;
+            const words = wordInput.value.split(',')
+                .map(word => word.trim().toLowerCase())
+                .filter(word => /^[a-z]+$/.test(word));
+            if (words.length === 0) {
+                errorMsg.textContent = 'กรุณาใส่คำศัพท์ภาษาอังกฤษอย่างน้อย 1 คำ';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            wordList = words;
         }
         errorMsg.classList.add('hidden');
         currentWordIndex = 0;
         loadWord();
         switchScreen(gameScreen);
-      };
+    };
 
-      const loadWord = () => {
+    const loadWord = () => {
         if (currentWordIndex >= wordList.length) {
-          showSummary();
-          return;
+            showSummary();
+            return;
         }
 
         jigsawSection.classList.remove('hidden');
@@ -221,162 +185,208 @@
         progressIndicator.textContent = `คำที่ ${currentWordIndex + 1} / ${wordList.length}`;
         const currentWord = wordList[currentWordIndex];
         const pieces = splitWord(currentWord, difficultySelect.value);
-
+        
         renderJigsaw(pieces);
-      };
+    };
 
-      const splitWord = (word, level) => {
+    const splitWord = (word, level) => {
         if (!word) return [];
         let parts = [];
         switch (level) {
-          case 'easy':
-            parts = word.split('');
-            break;
-          case 'hard':
-            for (let i = 0; i < word.length; i++) {
-              if (Math.random() > 0.5 && i < word.length - 1) {
-                parts.push(word.substring(i, i + 2));
-                i++;
-              } else {
-                parts.push(word[i]);
-              }
-            }
-            break;
-          case 'medium':
-          default:
-            const len = word.length;
-            if (len <= 4) {
-              const mid = Math.ceil(len / 2);
-              parts.push(word.substring(0, mid), word.substring(mid));
-            } else {
-              const p1_len = Math.ceil(len / 3);
-              const p2_len = Math.ceil((len - p1_len) / 2);
-              parts.push(word.substring(0, p1_len), word.substring(p1_len, p1_len + p2_len), word.substring(p1_len + p2_len));
-            }
+            case 'easy':
+                parts = word.split('');
+                break;
+            case 'hard':
+                for (let i = 0; i < word.length; i++) {
+                    if (Math.random() > 0.5 && i < word.length - 1) {
+                        parts.push(word.substring(i, i + 2));
+                        i++;
+                    } else {
+                        parts.push(word[i]);
+                    }
+                }
+                break;
+            case 'medium':
+            default:
+                const len = word.length;
+                if (len <= 4) {
+                    const mid = Math.ceil(len / 2);
+                    parts.push(word.substring(0, mid), word.substring(mid));
+                } else {
+                    const p1_len = Math.ceil(len / 3);
+                    const p2_len = Math.ceil((len - p1_len) / 2);
+                    parts.push(word.substring(0, p1_len), word.substring(p1_len, p1_len + p2_len), word.substring(p1_len + p2_len));
+                }
         }
-        // Return an array of objects, each with a unique ID and its text value.
-        // This is crucial for handling duplicate pieces like 'p' in 'apple'.
         return parts.filter(p => p.length > 0).map((value, index) => ({ id: index, value }));
-      };
+    };
 
-      const renderJigsaw = (pieces) => {
+    const renderJigsaw = (pieces) => {
         dropZoneContainer.innerHTML = '';
         pieceContainer.innerHTML = '';
-
+        
         const shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
 
-        pieces.forEach((piece, index) => {
-          const dropZone = document.createElement('div');
-          dropZone.classList.add('drop-zone', 'border-2', 'border-dashed', 'border-gray-400', 'rounded-lg', 'flex', 'items-center', 'justify-center');
-          dropZone.style.width = `${piece.value.length * 20 + 40}px`;
-          dropZone.style.height = `60px`;
-          dropZone.dataset.correctId = piece.id; // The ID of the piece that belongs here
-          dropZoneContainer.appendChild(dropZone);
+        pieces.forEach((piece) => {
+            const dropZone = document.createElement('div');
+            dropZone.classList.add('drop-zone', 'border-2', 'border-dashed', 'border-gray-400', 'rounded-lg', 'flex', 'items-center', 'justify-center');
+            dropZone.style.width = `${piece.value.length * 20 + 40}px`;
+            dropZone.style.height = `60px`;
+            dropZone.dataset.correctId = piece.id;
+            dropZoneContainer.appendChild(dropZone);
         });
 
         shuffledPieces.forEach(piece => {
-          const pieceEl = document.createElement('div');
-          pieceEl.textContent = piece.value;
-          pieceEl.classList.add('jigsaw-piece', 'bg-white', 'p-4', 'rounded-lg', 'font-inter', 'font-bold', 'text-xl', 'text-blue-700', 'border-2', 'border-blue-300');
-          pieceEl.draggable = true;
-          pieceEl.dataset.id = piece.id; // The unique ID of this piece
-          pieceContainer.appendChild(pieceEl);
+            const pieceEl = document.createElement('div');
+            pieceEl.textContent = piece.value;
+            pieceEl.classList.add('jigsaw-piece', 'bg-white', 'p-4', 'rounded-lg', 'font-inter', 'font-bold', 'text-xl', 'text-blue-700', 'border-2', 'border-blue-300');
+            pieceEl.draggable = true;
+            pieceEl.dataset.id = piece.id;
+            pieceContainer.appendChild(pieceEl);
         });
 
         addDragAndDropListeners();
-      };
+    };
 
-      const addDragAndDropListeners = () => {
+    const addDragAndDropListeners = () => {
         const pieces = document.querySelectorAll('.jigsaw-piece');
         const dropZones = document.querySelectorAll('.drop-zone');
 
+        // --- MOUSE EVENTS ---
         pieces.forEach(piece => {
-          piece.addEventListener('dragstart', e => {
-            draggedPiece = e.target;
-            setTimeout(() => e.target.classList.add('dragging'), 0);
-          });
-          piece.addEventListener('dragend', e => {
-            draggedPiece = null;
-            e.target.classList.remove('dragging');
-          });
+            piece.addEventListener('dragstart', e => {
+                draggedPiece = e.target;
+                setTimeout(() => e.target.classList.add('dragging'), 0);
+            });
+            piece.addEventListener('dragend', e => {
+                draggedPiece = null;
+                e.target.classList.remove('dragging');
+            });
+        });
+
+        // --- TOUCH EVENTS ---
+        let lastTouchOverElement = null;
+        pieces.forEach(piece => {
+            piece.addEventListener('touchstart', e => {
+                e.preventDefault();
+                draggedPiece = e.target;
+                draggedPiece.classList.add('dragging');
+            }, { passive: false });
+
+            piece.addEventListener('touchmove', e => {
+                e.preventDefault();
+                if (!draggedPiece) return;
+                const touch = e.touches[0];
+                const elementOver = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                if (lastTouchOverElement && lastTouchOverElement !== elementOver) {
+                    lastTouchOverElement.classList.remove('over');
+                }
+
+                if (elementOver && elementOver.classList.contains('drop-zone')) {
+                    elementOver.classList.add('over');
+                    lastTouchOverElement = elementOver;
+                } else {
+                    lastTouchOverElement = null;
+                }
+            }, { passive: false });
+
+            piece.addEventListener('touchend', e => {
+                e.preventDefault();
+                if (!draggedPiece) return;
+
+                const touch = e.changedTouches[0];
+                const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+
+                if (dropTarget && dropTarget.classList.contains('drop-zone') && (!dropTarget.hasChildNodes() || dropTarget.querySelector('.jigsaw-piece') === null)) {
+                    handleDrop(dropTarget);
+                }
+                
+                if (lastTouchOverElement) {
+                    lastTouchOverElement.classList.remove('over');
+                }
+                draggedPiece.classList.remove('dragging');
+                draggedPiece = null;
+            });
         });
 
         dropZones.forEach(zone => {
-          zone.addEventListener('dragover', e => {
-            e.preventDefault();
-            if (!zone.hasChildNodes() || zone.querySelector('.jigsaw-piece') === null) {
-              zone.classList.add('over');
-            }
-          });
-          zone.addEventListener('dragleave', e => {
-            zone.classList.remove('over');
-          });
-          zone.addEventListener('drop', e => {
-            e.preventDefault();
-            zone.classList.remove('over');
-            if (!draggedPiece || zone.hasChildNodes() && zone.querySelector('.jigsaw-piece') !== null) return;
-
-            if (zone.dataset.correctId === draggedPiece.dataset.id) {
-              draggedPiece.classList.add('locked');
-              draggedPiece.draggable = false;
-              zone.appendChild(draggedPiece);
-              checkCompletion();
-            } else {
-              zone.classList.add('shake');
-              setTimeout(() => zone.classList.remove('shake'), 500);
-            }
-          });
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                if (!zone.hasChildNodes() || zone.querySelector('.jigsaw-piece') === null) {
+                    zone.classList.add('over');
+                }
+            });
+            zone.addEventListener('dragleave', e => {
+                zone.classList.remove('over');
+            });
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                if (!draggedPiece || zone.hasChildNodes() && zone.querySelector('.jigsaw-piece') !== null) return;
+                handleDrop(zone);
+            });
         });
-      };
+    };
 
-      const checkCompletion = () => {
+    const handleDrop = (zone) => {
+        if (zone.dataset.correctId === draggedPiece.dataset.id) {
+            draggedPiece.classList.add('locked');
+            draggedPiece.draggable = false;
+            zone.appendChild(draggedPiece);
+            checkCompletion();
+        } else {
+            zone.classList.add('shake');
+            setTimeout(() => zone.classList.remove('shake'), 500);
+        }
+    };
+
+    const checkCompletion = () => {
         const lockedPieces = dropZoneContainer.querySelectorAll('.locked').length;
         const totalPieces = dropZoneContainer.children.length;
         if (lockedPieces === totalPieces) {
-          setTimeout(() => {
-            jigsawSection.classList.add('hidden');
-            writingSection.classList.remove('hidden');
-            correctWordDisplay.textContent = wordList[currentWordIndex];
-            writingInput.focus();
-          }, 500);
+            setTimeout(() => {
+                jigsawSection.classList.add('hidden');
+                writingSection.classList.remove('hidden');
+                correctWordDisplay.textContent = wordList[currentWordIndex];
+                writingInput.focus();
+            }, 500);
         }
-      };
-
-      const checkWriting = () => {
+    };
+    
+    const checkWriting = () => {
         const userInput = writingInput.value.trim().toLowerCase();
         if (userInput === wordList[currentWordIndex]) {
-          writingInput.classList.add('border-green-500');
-          setTimeout(() => {
-            currentWordIndex++;
-            loadWord();
-          }, 1000);
+            writingInput.classList.add('border-green-500');
+            setTimeout(() => {
+                currentWordIndex++;
+                loadWord();
+            }, 1000);
         } else {
-          writingInput.classList.remove('border-green-500');
-          writingInput.classList.add('shake', 'border-red-500');
-          setTimeout(() => writingInput.classList.remove('shake'), 500);
+            writingInput.classList.remove('border-green-500');
+            writingInput.classList.add('shake', 'border-red-500');
+            setTimeout(() => writingInput.classList.remove('shake'), 500);
         }
-      };
+    };
 
-      const showSummary = () => {
+    const showSummary = () => {
         summaryList.innerHTML = `<ul class="list-disc list-inside font-inter text-lg text-gray-800">${wordList.map(word => `<li class="mb-1">${word}</li>`).join('')}</ul>`;
         switchScreen(summaryScreen);
-      };
+    };
 
-      const goHome = () => {
+    const goHome = () => {
         wordInput.value = '';
         switchScreen(setupScreen);
-      };
+    };
 
-      // --- EVENT LISTENERS ---
-      startGameBtn.addEventListener('click', () => startGame(false));
-      playAgainBtn.addEventListener('click', () => startGame(true));
-      quitGameBtn.addEventListener('click', goHome);
-      newGameBtn.addEventListener('click', goHome);
-      checkWritingBtn.addEventListener('click', checkWriting);
-      writingInput.addEventListener('keyup', e => { if (e.key === 'Enter') checkWriting(); });
-    });
-  </script>
+    startGameBtn.addEventListener('click', () => startGame(false));
+    playAgainBtn.addEventListener('click', () => startGame(true));
+    quitGameBtn.addEventListener('click', goHome);
+    newGameBtn.addEventListener('click', goHome);
+    checkWritingBtn.addEventListener('click', checkWriting);
+    writingInput.addEventListener('keyup', e => { if (e.key === 'Enter') checkWriting(); });
+});
+</script>
 
 </body>
-
 </html>
