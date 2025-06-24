@@ -61,7 +61,7 @@
 
             <div class="mb-4">
                 <label for="word-input" class="block text-lg font-semibold mb-2 text-gray-700">ใส่คำศัพท์ประจำสัปดาห์ (คั่นด้วย ,)</label>
-                <textarea id="word-input" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 font-inter" rows="4" placeholder="เช่น computer, beautiful, elephant, happy"></textarea>
+                <textarea id="word-input" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 font-inter" rows="4" placeholder="เช่น computer, beautiful, apple, happy"></textarea>
             </div>
             
             <div class="mb-6">
@@ -180,10 +180,10 @@
             if (!isReplay) {
                 const words = wordInput.value.split(',')
                     .map(word => word.trim().toLowerCase())
-                    .filter(word => word.length > 0);
+                    .filter(word => word.length > 0 && /^[a-z]+$/.test(word)); // Only allow english letters
 
                 if (words.length === 0) {
-                    errorMsg.textContent = 'กรุณาใส่คำศัพท์อย่างน้อย 1 คำ';
+                    errorMsg.textContent = 'กรุณาใส่คำศัพท์ภาษาอังกฤษอย่างน้อย 1 คำ';
                     errorMsg.classList.remove('hidden');
                     return;
                 }
@@ -221,7 +221,6 @@
             renderJigsaw(shuffledPieces, originalPieces);
         }
 
-        // --- FIXED FUNCTION ---
         function splitWord(word, level) {
             if (!word) return [];
 
@@ -238,23 +237,22 @@
                             hardPieces.push(word[i]);
                         }
                     }
-                    return hardPieces;
+                    return hardPieces.filter(p => p.length > 0);
                 case 'medium':
                 default:
                     const len = word.length;
                     const pieces = [];
-                    if (len <= 4) { // For 1, 2, 3, 4 letter words
+                    if (len <= 4) {
                         const mid = Math.ceil(len / 2);
                         pieces.push(word.substring(0, mid));
                         pieces.push(word.substring(mid));
-                    } else { // For 5+ letter words, split into 3 parts
+                    } else {
                         const p1_len = Math.ceil(len / 3);
                         const p2_len = Math.ceil((len - p1_len) / 2);
                         pieces.push(word.substring(0, p1_len));
                         pieces.push(word.substring(p1_len, p1_len + p2_len));
                         pieces.push(word.substring(p1_len + p2_len));
                     }
-                    // Failsafe to remove any accidentally created empty pieces
                     return pieces.filter(p => p.length > 0);
             }
         }
@@ -273,12 +271,13 @@
                 dropZoneContainer.appendChild(dropZone);
             });
 
-            pieces.forEach((pieceText) => {
+            pieces.forEach((pieceText, index) => {
                 const piece = document.createElement('div');
                 piece.textContent = pieceText;
                 piece.classList.add('jigsaw-piece', 'bg-white', 'p-4', 'rounded-lg', 'font-inter', 'font-bold', 'text-xl', 'text-blue-700', 'border-2', 'border-blue-300');
                 piece.draggable = true;
                 piece.dataset.piece = pieceText;
+                piece.dataset.id = index; // Assign a unique ID based on its initial shuffled position
                 pieceContainer.appendChild(piece);
             });
             addDragAndDropListeners();
@@ -291,6 +290,7 @@
             pieces.forEach(piece => {
                 piece.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', e.target.dataset.piece);
+                    e.dataTransfer.setData('text/id', e.target.dataset.id); // Transfer the unique ID
                     setTimeout(() => e.target.classList.add('opacity-50'), 0);
                 });
                 piece.addEventListener('dragend', (e) => {
@@ -314,6 +314,7 @@
                     if (zone.classList.contains('locked')) return;
 
                     const droppedPieceText = e.dataTransfer.getData('text/plain');
+                    const droppedPieceId = e.dataTransfer.getData('text/id'); // Get the unique ID
                     const correctPieceText = originalPieces[zone.dataset.index];
 
                     if (droppedPieceText === correctPieceText) {
@@ -321,7 +322,8 @@
                         zone.classList.add('locked');
                         zone.classList.remove('border-dashed', 'text-gray-400');
                         
-                        const pieceInContainer = pieceContainer.querySelector(`[data-piece="${droppedPieceText}"]`);
+                        // Use the unique ID to hide the specific piece that was dragged
+                        const pieceInContainer = pieceContainer.querySelector(`[data-id="${droppedPieceId}"]`);
                         if (pieceInContainer) pieceInContainer.style.visibility = 'hidden';
                         
                         correctPiecesCount++;
@@ -351,7 +353,6 @@
                 writingInput.classList.remove('shake', 'border-red-500');
                 writingInput.classList.add('border-green-500');
 
-                // Correct Answer Feedback
                 const feedback = document.createElement('div');
                 feedback.textContent = '✅';
                 feedback.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 80px; transition: all 0.5s ease;';
@@ -361,7 +362,6 @@
                     feedback.style.transform = 'translate(-50%, -50%) scale(1)';
                     feedback.style.opacity = '0';
                 }, 10);
-
 
                 setTimeout(() => {
                     writingInput.classList.remove('border-green-500');
