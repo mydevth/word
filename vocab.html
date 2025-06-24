@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jigsaw Speller: ถอดรหัสจิ๊กซอว์ศัพท์</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,12 +13,29 @@
         }
 
         body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
+            font-family: 'Prompt', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        /* Theme Colors */
+        body.theme-blue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body.theme-pink {
+            background: linear-gradient(135deg, #ed64a6 0%, #d53f8c 100%);
+        }
+
+        body.theme-green {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        body.theme-purple {
+            background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
         }
 
         .container {
@@ -60,6 +78,65 @@
             margin-bottom: 30px;
         }
 
+        /* Theme Selector */
+        .theme-selector, .mode-selector {
+            margin-bottom: 25px;
+        }
+
+        .theme-buttons, .mode-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .theme-btn, .mode-btn {
+            padding: 10px 15px;
+            font-size: 1em;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .theme-btn:hover, .mode-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .theme-btn.selected, .mode-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .sound-toggle {
+            margin-bottom: 20px;
+        }
+
+        .sound-btn {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .sound-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .sound-btn.muted {
+            background: #fed7d7;
+            border-color: #f56565;
+            color: #c53030;
+        }
+
         /* Setup Screen Styles */
         .word-input {
             width: 100%;
@@ -69,6 +146,7 @@
             border-radius: 10px;
             margin-bottom: 25px;
             transition: border-color 0.3s;
+            font-family: 'Prompt', sans-serif;
         }
 
         .word-input:focus {
@@ -93,6 +171,7 @@
             cursor: pointer;
             transition: all 0.3s;
             min-width: 120px;
+            font-family: 'Prompt', sans-serif;
         }
 
         .difficulty-btn:hover {
@@ -116,6 +195,7 @@
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 5px 15px rgba(72, 187, 120, 0.3);
+            font-family: 'Prompt', sans-serif;
         }
 
         .start-btn:hover {
@@ -131,11 +211,53 @@
         }
 
         /* Game Screen Styles */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
         .progress {
             font-size: 1.3em;
             color: #4a5568;
-            margin-bottom: 30px;
             font-weight: bold;
+        }
+
+        .timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #e53e3e;
+            background: #fed7d7;
+            padding: 10px 15px;
+            border-radius: 15px;
+        }
+
+        .timer.warning {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .sticker-collection {
+            display: flex;
+            gap: 5px;
+        }
+
+        .sticker {
+            font-size: 1.5em;
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
         }
 
         .word-slots {
@@ -209,6 +331,62 @@
             cursor: not-allowed;
         }
 
+        /* Game Controls */
+        .game-controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .hint-btn, .pronounce-btn {
+            padding: 12px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .hint-btn {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #744210;
+        }
+
+        .hint-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .hint-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            color: #a0aec0;
+        }
+
+        .pronounce-btn {
+            background: linear-gradient(45deg, #38b2ac, #319795);
+            color: white;
+        }
+
+        .pronounce-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(56, 178, 172, 0.3);
+        }
+
+        .hint-display {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2d3748;
+            background: #fff5cd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 2px solid #fbd38d;
+        }
+
         /* Writing Screen Styles */
         .complete-word {
             font-size: 3em;
@@ -227,6 +405,7 @@
             text-align: center;
             width: 300px;
             max-width: 100%;
+            font-family: 'Prompt', sans-serif;
         }
 
         .writing-input:focus {
@@ -254,6 +433,7 @@
             cursor: pointer;
             transition: all 0.3s;
             margin-top: 20px;
+            font-family: 'Prompt', sans-serif;
         }
 
         .next-btn:hover {
@@ -319,6 +499,7 @@
             border-radius: 20px;
             cursor: pointer;
             transition: all 0.3s;
+            font-family: 'Prompt', sans-serif;
         }
 
         .play-again-btn {
@@ -364,6 +545,12 @@
             100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
         }
 
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .container {
@@ -405,12 +592,28 @@
         }
     </style>
 </head>
-<body>
+<body class="theme-blue">
     <div class="container">
         <!-- Setup Screen -->
         <div class="screen active" id="setupScreen">
             <h1>🧩 Jigsaw Speller</h1>
             <p class="subtitle">สร้างเกมจิ๊กซอว์ศัพท์ของคุณ!</p>
+            
+            <!-- Theme Selector -->
+            <div class="theme-selector">
+                <p style="margin-bottom: 15px; font-weight: 500;">🎨 เลือกธีมสีที่ชอบ:</p>
+                <div class="theme-buttons">
+                    <button class="theme-btn selected" data-theme="blue">💙 ฟ้า</button>
+                    <button class="theme-btn" data-theme="pink">💖 ชมพู</button>
+                    <button class="theme-btn" data-theme="green">💚 เขียว</button>
+                    <button class="theme-btn" data-theme="purple">💜 ม่วง</button>
+                </div>
+            </div>
+            
+            <!-- Sound Toggle -->
+            <div class="sound-toggle">
+                <button class="sound-btn" id="soundToggle">🔊 เปิดเสียง</button>
+            </div>
             
             <textarea class="word-input" id="wordInput" placeholder="โปรดใส่คำศัพท์ภาษาอังกฤษ คั่นด้วยเครื่องหมายจุลภาค (,) เช่น cat, dog, happy, book, tree"></textarea>
             
@@ -426,12 +629,27 @@
                 </button>
             </div>
             
+            <!-- Game Mode Selector -->
+            <div class="mode-selector">
+                <p style="margin-bottom: 15px; font-weight: 500;">⚡ โหมดเกม:</p>
+                <div class="mode-buttons">
+                    <button class="mode-btn selected" data-mode="normal">🎯 ปกติ</button>
+                    <button class="mode-btn" data-mode="timed">⏰ แข่งเวลา</button>
+                    <button class="mode-btn" data-mode="hint">💡 มีใบ้</button>
+                </div>
+            </div>
+            
             <button class="start-btn" id="startBtn">🚀 เริ่มภารกิจ!</button>
         </div>
 
         <!-- Game Screen -->
         <div class="screen" id="gameScreen">
-            <div class="progress" id="progress">คำที่ 1/5</div>
+            <div class="game-header">
+                <div class="progress" id="progress">คำที่ 1/5</div>
+                <div class="timer" id="timer" style="display: none;">⏰ 30</div>
+                <div class="sticker-collection" id="stickerCollection"></div>
+            </div>
+            
             <h2 id="currentWord">ต่อจิ๊กซอว์ให้ถูกต้อง</h2>
             
             <div class="word-slots" id="wordSlots">
@@ -441,6 +659,13 @@
             <div class="puzzle-pieces" id="puzzlePieces">
                 <!-- Puzzle pieces will be generated here -->
             </div>
+            
+            <div class="game-controls">
+                <button class="hint-btn" id="hintBtn" style="display: none;">💡 ขอใบ้</button>
+                <button class="pronounce-btn" id="pronounceBtn">🗣️ ฟังเสียง</button>
+            </div>
+            
+            <div class="hint-display" id="hintDisplay" style="display: none;"></div>
         </div>
 
         <!-- Writing Screen -->
@@ -478,8 +703,15 @@
                 this.words = [];
                 this.currentWordIndex = 0;
                 this.difficulty = 'medium';
+                this.gameMode = 'normal';
+                this.theme = 'blue';
+                this.soundEnabled = true;
                 this.completedWords = [];
                 this.currentPuzzleData = null;
+                this.timer = null;
+                this.timeLeft = 30;
+                this.hintsUsed = 0;
+                this.stickers = [];
                 
                 this.initializeEventListeners();
             }
@@ -487,9 +719,28 @@
             initializeEventListeners() {
                 // Setup screen
                 document.getElementById('startBtn').addEventListener('click', () => this.startGame());
+                
+                // Theme buttons
+                document.querySelectorAll('.theme-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.selectTheme(btn));
+                });
+                
+                // Mode buttons
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.selectMode(btn));
+                });
+                
+                // Difficulty buttons
                 document.querySelectorAll('.difficulty-btn').forEach(btn => {
                     btn.addEventListener('click', () => this.selectDifficulty(btn));
                 });
+                
+                // Sound toggle
+                document.getElementById('soundToggle').addEventListener('click', () => this.toggleSound());
+
+                // Game screen
+                document.getElementById('hintBtn').addEventListener('click', () => this.showHint());
+                document.getElementById('pronounceBtn').addEventListener('click', () => this.pronounceWord());
 
                 // Writing screen
                 document.getElementById('writingInput').addEventListener('input', () => this.checkWriting());
@@ -500,12 +751,41 @@
                 document.getElementById('newGameBtn').addEventListener('click', () => this.newGame());
             }
 
+            selectTheme(selectedBtn) {
+                document.querySelectorAll('.theme-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                selectedBtn.classList.add('selected');
+                this.theme = selectedBtn.dataset.theme;
+                document.body.className = `theme-${this.theme}`;
+            }
+
+            selectMode(selectedBtn) {
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                selectedBtn.classList.add('selected');
+                this.gameMode = selectedBtn.dataset.mode;
+            }
+
             selectDifficulty(selectedBtn) {
                 document.querySelectorAll('.difficulty-btn').forEach(btn => {
                     btn.classList.remove('selected');
                 });
                 selectedBtn.classList.add('selected');
                 this.difficulty = selectedBtn.dataset.level;
+            }
+
+            toggleSound() {
+                this.soundEnabled = !this.soundEnabled;
+                const btn = document.getElementById('soundToggle');
+                if (this.soundEnabled) {
+                    btn.textContent = '🔊 เปิดเสียง';
+                    btn.classList.remove('muted');
+                } else {
+                    btn.textContent = '🔇 ปิดเสียง';
+                    btn.classList.add('muted');
+                }
             }
 
             startGame() {
@@ -525,6 +805,25 @@
 
                 this.currentWordIndex = 0;
                 this.completedWords = [];
+                this.stickers = [];
+                this.hintsUsed = 0;
+                
+                // Clear sticker collection
+                document.getElementById('stickerCollection').innerHTML = '';
+                
+                // Setup UI based on game mode
+                if (this.gameMode === 'hint') {
+                    document.getElementById('hintBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('hintBtn').style.display = 'none';
+                }
+                
+                if (this.gameMode === 'timed') {
+                    document.getElementById('timer').style.display = 'block';
+                } else {
+                    document.getElementById('timer').style.display = 'none';
+                }
+
                 this.showScreen('gameScreen');
                 this.setupCurrentWord();
             }
@@ -536,6 +835,90 @@
 
                 this.currentPuzzleData = this.createPuzzle(word);
                 this.renderPuzzle();
+                
+                // Reset hint
+                document.getElementById('hintBtn').disabled = false;
+                document.getElementById('hintDisplay').style.display = 'none';
+                document.getElementById('hintDisplay').textContent = '';
+                
+                // Start timer for timed mode
+                if (this.gameMode === 'timed') {
+                    this.startTimer();
+                }
+            }
+
+            startTimer() {
+                this.timeLeft = 30;
+                const timerDisplay = document.getElementById('timer');
+                timerDisplay.classList.remove('warning');
+                
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    timerDisplay.textContent = `⏰ ${this.timeLeft}`;
+                    
+                    if (this.timeLeft <= 10) {
+                        timerDisplay.classList.add('warning');
+                    }
+                    
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timer);
+                        this.playErrorSound();
+                        setTimeout(() => {
+                            this.nextWord();
+                        }, 1000);
+                    }
+                }, 1000);
+            }
+
+            showHint() {
+                if (this.hintsUsed >= 2) {
+                    alert('ใช้ใบ้ครบแล้วสำหรับเกมนี้!');
+                    return;
+                }
+                
+                const word = this.currentPuzzleData.word;
+                const hintDisplay = document.getElementById('hintDisplay');
+                
+                if (this.hintsUsed === 0) {
+                    hintDisplay.textContent = `ใบ้: คำนี้เริ่มต้นด้วย "${word[0]}"`;
+                } else {
+                    hintDisplay.textContent = `ใบ้: คำนี้มี ${word.length} ตัวอักษร และลงท้ายด้วย "${word[word.length-1]}"`;
+                }
+                
+                hintDisplay.style.display = 'block';
+                this.hintsUsed++;
+                
+                if (this.hintsUsed >= 2) {
+                    document.getElementById('hintBtn').disabled = true;
+                }
+            }
+
+            pronounceWord() {
+                if (this.soundEnabled && 'speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(this.currentPuzzleData.word.toLowerCase());
+                    utterance.lang = 'en-US';
+                    utterance.rate = 0.8;
+                    speechSynthesis.speak(utterance);
+                }
+                
+                // Visual feedback
+                const btn = document.getElementById('pronounceBtn');
+                btn.style.animation = 'success 0.5s ease-in-out';
+                setTimeout(() => {
+                    btn.style.animation = '';
+                }, 500);
+            }
+
+            addSticker() {
+                const stickers = ['⭐', '🎉', '🏆', '💎', '🌟', '🎊', '🔥', '✨'];
+                const randomSticker = stickers[Math.floor(Math.random() * stickers.length)];
+                this.stickers.push(randomSticker);
+                
+                const stickerCollection = document.getElementById('stickerCollection');
+                const stickerElement = document.createElement('span');
+                stickerElement.className = 'sticker';
+                stickerElement.textContent = randomSticker;
+                stickerCollection.appendChild(stickerElement);
             }
 
             createPuzzle(word) {
@@ -704,6 +1087,14 @@
                 const allFilled = Array.from(slots).every(slot => slot.classList.contains('occupied'));
                 
                 if (allFilled) {
+                    // Stop timer if in timed mode
+                    if (this.timer) {
+                        clearInterval(this.timer);
+                    }
+                    
+                    // Add sticker for completion
+                    this.addSticker();
+                    
                     setTimeout(() => {
                         this.showWritingScreen();
                     }, 1000);
@@ -782,6 +1173,9 @@
             playAgain() {
                 this.currentWordIndex = 0;
                 this.completedWords = [];
+                this.stickers = [];
+                this.hintsUsed = 0;
+                document.getElementById('stickerCollection').innerHTML = '';
                 this.showScreen('gameScreen');
                 this.setupCurrentWord();
             }
@@ -790,7 +1184,10 @@
                 this.currentWordIndex = 0;
                 this.completedWords = [];
                 this.words = [];
+                this.stickers = [];
+                this.hintsUsed = 0;
                 document.getElementById('wordInput').value = '';
+                document.getElementById('stickerCollection').innerHTML = '';
                 this.showScreen('setupScreen');
             }
 
@@ -808,11 +1205,17 @@
                 document.body.appendChild(celebration);
                 
                 setTimeout(() => {
-                    document.body.removeChild(celebration);
+                    if (document.body.contains(celebration)) {
+                        document.body.removeChild(celebration);
+                    }
                 }, 1000);
             }
 
             playSuccessSound() {
+                if (this.soundEnabled) {
+                    this.playTone(800, 150);
+                }
+                
                 // Visual feedback for success
                 const slots = document.querySelectorAll('.slot.occupied');
                 slots.forEach(slot => {
@@ -824,6 +1227,10 @@
             }
 
             playErrorSound() {
+                if (this.soundEnabled) {
+                    this.playTone(200, 300);
+                }
+                
                 // Visual feedback for error
                 const gameScreen = document.getElementById('gameScreen');
                 gameScreen.style.animation = 'shake 0.5s';
@@ -831,18 +1238,32 @@
                     gameScreen.style.animation = '';
                 }, 500);
             }
-        }
 
-        // Add shake animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-5px); }
-                75% { transform: translateX(5px); }
+            playTone(frequency, duration) {
+                if (!this.soundEnabled) return;
+                
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + duration / 1000);
+                } catch (e) {
+                    // Fallback: do nothing if audio context fails
+                    console.log('Audio not supported');
+                }
             }
-        `;
-        document.head.appendChild(style);
+        }
 
         // Initialize the game
         new JigsawSpeller();
